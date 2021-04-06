@@ -131,3 +131,15 @@ describe("Login User", () => {
       });
   });
 });
+
+describe("Logout user", async () => {
+  test("It Should Logout The User", async () => {
+    return await request(app)
+      .get("/auth/logout")
+      .then((response) => {
+        expect(response.statusCode).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.cookie).toBe(undefined);
+      });
+  });
+});

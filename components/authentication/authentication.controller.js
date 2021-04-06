@@ -57,3 +57,16 @@ exports.login = async (req, res, next) => {
   //IF PASSWORD IS CORRECT, SEND TOKEN TO CLIENT
   authenticatedToken(user, 200, res);
 };
+
+exports.logout = asyncHandler(async (req, res, next) => {
+  console.log(this.logout.constructor.name);
+
+  res.cookie("token", "none", {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({
+    success: true,
+    data: {},
+  });
+});
