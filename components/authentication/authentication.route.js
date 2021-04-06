@@ -2,7 +2,12 @@
 const express = require("express");
 
 //IMPORT CONTROLLER FUNCTIONS
-const { createAccount } = require("./authentication.controller");
+const {
+  createAccount,
+  getAccount,
+  getAllTeams,
+  login,
+} = require("./authentication.controller");
 
 //APPLY MIDDLEWARE
 //PROTECTED ROUTE - REQUIRES AUTHENTICATION
@@ -25,6 +30,9 @@ router.post(
   //   validationErrors,
   createAccount
 );
+router.post("/login", login);
+// router.get("/all-teams", getAllTeams);
+// router.get(`/:id`, getAccount);
 // router.post(
 //   "/invite-user",
 //   invitedUserValidation,

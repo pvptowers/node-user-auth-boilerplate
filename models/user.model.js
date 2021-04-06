@@ -48,6 +48,10 @@ const userSchema = new Schema({
     type: Boolean,
     required: true,
   },
+  role: {
+    type: String,
+    required: true,
+  },
 });
 
 userSchema.virtual("teamMembers", {
@@ -77,7 +81,7 @@ userSchema.methods.getAuthJwtToken = function () {
   return jwt.sign(
     {
       id: this._id,
-      account: this.account,
+      team: this.team,
     },
     process.env.JWT_SECRET,
     {
