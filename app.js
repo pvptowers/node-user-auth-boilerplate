@@ -54,7 +54,6 @@ const applyRateLimit = rateLimit({
 app.use(applyRateLimit);
 
 //DEFINE ROUTE HANDLERS
-
 const base = require("./routes/base");
 app.use("/api", base);
 const auth = require("./components/authentication/authentication.route");
