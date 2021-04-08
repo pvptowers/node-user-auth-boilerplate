@@ -67,7 +67,7 @@ const errorHandler = (err, req, res, next) => {
     process.env.NODE_ENV === "test"
   ) {
     let error = { ...err };
-    console.log("THIS IS THE ERROR CODE", error.code);
+    console.log("THIS IS THE ERROR CODE", error);
 
     error.message = err.message;
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);

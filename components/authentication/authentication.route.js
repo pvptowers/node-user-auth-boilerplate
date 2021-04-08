@@ -1,5 +1,9 @@
 //THIRD PARTY LIBRARIES
 const express = require("express");
+const {
+  newAccountValidation,
+  validationErrors,
+} = require("./authentication.validation");
 
 //IMPORT CONTROLLER FUNCTIONS
 const {
@@ -21,6 +25,5 @@ router.get("/logout", logout);
 //router.get("/current-user")
 //router.post("/update-user")
 //router.put("update-password")
-//router.get("/logout")
 
 module.exports = router;

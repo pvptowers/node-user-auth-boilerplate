@@ -58,6 +58,10 @@ const base = require("./routes/base");
 app.use("/api", base);
 const auth = require("./components/authentication/authentication.route");
 app.use("/auth", auth);
+const user = require("./components/users/user.route");
+app.use("/auth/", user);
+const team = require("./components/teams/team.route");
+app.use("/auth/", team);
 
 //CATCH UNDEFINED URLS
 app.all("*", (req, res, next) => {

@@ -54,7 +54,7 @@ describe("Create Account", () => {
         email: "jest@test.com",
         password: "123456",
         passwordConfirm: "123456",
-        teamName: "jesttest",
+        teamName: "jesttest12345",
         role: "rootUser",
         agreedTerms: true,
       })
@@ -71,6 +71,22 @@ describe("Create Account", () => {
         expect(response.body.data.passwordConfirm).toBe(undefined);
       });
   });
+  // test("Should return 422 if agreedTerms not true", async () => {
+  //   return await request(app)
+  //     .post("/auth/create-account")
+  //     .send({
+  //       email: "jest1@test.com",
+  //       password: "123456",
+  //       passwordConfirm: "1234567",
+  //       teamName: "jesttest1",
+  //       role: "rootUser",
+  //       agreedTerms: true,
+  //     })
+  //     .then((response) => {
+  //       expect(response.statusCode).toBe(422);
+  //       expect(response.errors.msg).toBe("Passwords must match");
+  //     });
+  // });
 });
 
 describe("Login User", () => {
