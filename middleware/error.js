@@ -1,4 +1,4 @@
-const ErrorResponse = require("../utils/errorResponse");
+const ErrorResponse = require("./errorResponse");
 
 const errorHandler = (err, req, res, next) => {
   //HANDLE INVALID DATABASE ID'S PASSED IN URL PARAMS
@@ -11,7 +11,6 @@ const errorHandler = (err, req, res, next) => {
   const handleDuplicateFieldsDB = (err) => {
     //const value = err.errmsg.match(/([" '])(\\?.)*?\1/)[0];
     const message = `Duplicate field value entered`;
-    console.log("THIS IS AN ERROR");
     return new ErrorResponse(message, 400);
   };
 
@@ -67,7 +66,6 @@ const errorHandler = (err, req, res, next) => {
     process.env.NODE_ENV === "test"
   ) {
     let error = { ...err };
-    console.log("THIS IS THE ERROR CODE", error);
 
     error.message = err.message;
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);

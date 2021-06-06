@@ -1,6 +1,6 @@
 //THIRD PARTY LIBRARIES
 const mongoose = require("mongoose");
-const createServer = require("../createServer");
+//const createServer = require("../createServer");
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI, {

@@ -8,6 +8,7 @@ const {
 //IMPORT CONTROLLER FUNCTIONS
 const {
   createAccount,
+  addUser,
   getAccount,
   getAllTeams,
   login,
@@ -18,12 +19,14 @@ const {
 const router = express.Router();
 
 //DEFINTE ROUTES
-router.post("/create-account", createAccount);
+router.post(
+  "/create-account",
+  newAccountValidation,
+  validationErrors,
+  createAccount
+);
+router.post("/add-user", addUser);
 router.post("/login", login);
 router.get("/logout", logout);
-
-//router.get("/current-user")
-//router.post("/update-user")
-//router.put("update-password")
 
 module.exports = router;

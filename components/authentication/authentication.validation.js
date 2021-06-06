@@ -1,110 +1,57 @@
 const { check, validationResult } = require("express-validator");
 const Team = require("../../models/team.model");
 const User = require("../../models/user.model");
-
-const ErrorResponse = require("../../utils/errorResponse");
-
+const ErrorResponse = require("../../middleware/errorResponse");
 exports.newAccountValidation = [
-  check("teamName").custom(async (teamName) => {
-    const team = await Team.findOne({ teamName });
-    if (team) {
-      throw new ErrorResponse("A Team with this name already exists", 401);
-    }
-  }),
+  check("teamName")
+    .notEmpty()
+    .withMessage("You must provide a team name")
+    .bail(),
   check("email")
-    .isEmail()
     .custom(async (email) => {
-      const user = await User.findOne({ email }).select("+password");
+      const user = await User.findOne({ email });
       if (user) {
-        throw new ErrorResponse(
-          "A user with this email already exists. Please login instead",
-          401
+        return Promise.reject("A user with this email already exists");
+      }
+    })
+    .bail(),
+  check("email").notEmpty().withMessage("You must provide an email").bail(),
+
+  check("password")
+    .notEmpty()
+    .withMessage("You must provide a password")
+    .bail()
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters")
+    .bail()
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/)
+    .withMessage(
+      "Password have at least 1 uppercase, 1 lowercase and 1 letter"
+    ),
+  check("passwordConfirm")
+    .custom(async (passwordConfirm, { req }) => {
+      const password = req.body.password;
+      if (password !== passwordConfirm) {
+        return Promise.reject("Passwords do not match");
+      }
+    })
+    .bail(),
+  check("agreedTerms")
+    .custom(async (agreedTerms, { req }) => {
+      if (!agreedTerms) {
+        return Promise.reject(
+          "You need to agree to the terms to create an account"
         );
       }
-    }),
-  check("password")
-    .isLength({ min: 6 })
-    .withMessage("Password must be 6 characters or more"),
-  check("passwordConfirm").custom(async (passwordConfirm, { req }) => {
-    console.log(passwordConfirm);
-    console.log(req.body.password);
-    const password = req.body.password;
-    if (password !== passwordConfirm) {
-      throw new ErrorResponse("Passwords must match", 422);
-    }
-  }),
-  //   check("agreedTerms").custom(async (agreedTerms, { req }) => {
-  //     const agreed = await req.body.agreedTerms;
-  //     if (agreed !== true) {
-  //       throw new ErrorResponse("You must agree terms");
-  //     }
-  //   }),
+    })
+    .bail(),
 ];
-// exports.invitedUserValidation = [
-//   check("email")
-//     .isEmail()
-//     .custom(async (email) => {
-//       const user = await User.findOne({ email }).select("+password");
-//       if (user) {
-//         throw new ErrorResponse(
-//           "A user with this email already exists. Please login instead",
-//           401
-//         );
-//       }
-//     }),
-//   check("password")
-//     .isLength({ min: 6 })
-//     .withMessage("Password must be 6 characters or more"),
-//   check("passwordConfirm").custom(async (passwordConfirm, { req }) => {
-//     const password = req.body.password;
-//     if (password !== passwordConfirm) {
-//       throw new Error("Passwords must match");
-//     }
-//   }),
-// ];
-// exports.loginValidation = [
-//   check("email")
-//     .not()
-//     .isEmpty()
-//     .withMessage("you must provide an email111")
-//     .custom(async (email) => {
-//       const user = await User.findOne({ email }).select("+password");
-//       if (!user) {
-//         throw new ErrorResponse("Invalid Credentials11111", 401);
-//       }
-//     }),
-//   check("password").not().isEmpty().withMessage("You must enter a password"),
-// ];
-
-// exports.updatePasswordValidation = [
-//   check("currentPassword")
-//     .not()
-//     .isEmpty()
-//     .withMessage("You must enter your current password"),
-//   check("newPassword")
-//     .not()
-//     .isEmpty()
-//     .withMessage("You must enter a new password"),
-// ];
-
-// exports.updateUserValidation = [
-//   check("email")
-//     .isEmail()
-//     .custom(async (email) => {
-//       const user = await User.findOne({ email }).select("+password");
-//       if (user) {
-//         throw new ErrorResponse(
-//           "A user with this email already exists. You cannot update your email to this address",
-//           401
-//         );
-//       }
-//     }),
-// ];
 
 exports.validationErrors = async (req, res, next) => {
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
+    return next(new ErrorResponse("Validation Failure", 401, errors.array()));
   }
   return next();
 };

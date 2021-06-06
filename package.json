@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "jest --detectOpenHandles --coverage ",
+    "test": "jest  --testEnvironment=node --detectOpenHandles  --watch --verbose ",
     "start": "nodemon server"
   },
   "author": "",

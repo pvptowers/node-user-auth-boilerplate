@@ -8,7 +8,7 @@ const rateLimit = require("express-rate-limit");
 const mongoSanitize = require("express-mongo-sanitize");
 
 const connectDB = require("./config/connectDB");
-const errorHandler = require("./middleware/error");
+const errorHandler = require("./middleware/ErrorHandler");
 
 //DEFINE PATH TO CONFIG FILE
 dotenv.config({
@@ -54,8 +54,7 @@ const applyRateLimit = rateLimit({
 app.use(applyRateLimit);
 
 //DEFINE ROUTE HANDLERS
-const base = require("./routes/base");
-app.use("/api", base);
+
 const auth = require("./components/authentication/authentication.route");
 app.use("/auth", auth);
 const user = require("./components/users/user.route");
@@ -65,10 +64,12 @@ app.use("/auth/", team);
 
 //CATCH UNDEFINED URLS
 app.all("*", (req, res, next) => {
-  next(new errorHandler(`Cant find ${req.originalUrl} on this server`, 404));
+  next(new ErrorHandler(`Cant find ${req.originalUrl} on this server`, 404));
 });
 
 //CALL GLOBAL ERROR HANDLER
+// app.use(errorHandler);
+
 app.use(errorHandler);
 
 module.exports = app;

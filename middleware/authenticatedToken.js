@@ -1,4 +1,4 @@
-const authenticatedToken = (user, statusCode, res) => {
+const authenticatedToken = (user, statusCode, res, messagetosend) => {
   const token = user.getAuthJwtToken();
   const options = {
     expires: new Date(
@@ -12,6 +12,6 @@ const authenticatedToken = (user, statusCode, res) => {
   res
     .status(statusCode)
     .cookie("token", token, options)
-    .json({ success: true, token, data: user });
+    .json({ success: true, token, data: user, message: messagetosend });
 };
 module.exports = authenticatedToken;
