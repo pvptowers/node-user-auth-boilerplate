@@ -151,7 +151,7 @@ describe("Errors", () => {
     };
   });
 
-  it("throws an error aatfegra", async () => {
+  it("throws an error", async () => {
     ErrorHandler(error, mReq, mRes, mNext);
     console.log("THIS IS ERRR", error);
     console.log("This is res", mRes);
