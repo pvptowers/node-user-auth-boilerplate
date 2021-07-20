@@ -2,6 +2,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 //const validator = require("validator");
 
 const { Schema } = mongoose;
@@ -52,6 +53,8 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
 
 userSchema.virtual("teamMembers", {
@@ -88,6 +91,17 @@ userSchema.methods.getAuthJwtToken = function () {
       expiresIn: process.env.JWT_EXPIRE,
     }
   );
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 userSchema.methods.matchPassword = async function (enteredPassword) {

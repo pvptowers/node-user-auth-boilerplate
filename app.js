@@ -9,7 +9,7 @@ const mongoSanitize = require("express-mongo-sanitize");
 
 const connectDB = require("./config/connectDB");
 const errorHandler = require("./middleware/ErrorHandler");
-
+const ErrorResponse = require("./middleware/errorResponse");
 //DEFINE PATH TO CONFIG FILE
 dotenv.config({
   path: "./config/config.env",
@@ -64,7 +64,7 @@ app.use("/auth/", team);
 
 //CATCH UNDEFINED URLS
 app.all("*", (req, res, next) => {
-  next(new ErrorHandler(`Cant find ${req.originalUrl} on this server`, 404));
+  next(new ErrorResponse(`Cant find ${req.originalUrl} on this server`, 404));
 });
 
 //CALL GLOBAL ERROR HANDLER

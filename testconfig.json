@@ -1,0 +1,14 @@
+{
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+        "**/*.{js,jsx}"
+    ],
+    "coverageReporters": [
+        "lcov"
+    ],
+    "coverageDirectory": "./jestOutput/coverage-report/",
+    "globals": {
+        "rating": "5 star",
+        "thoughts": "The course precise and detailed"
+    }
+}

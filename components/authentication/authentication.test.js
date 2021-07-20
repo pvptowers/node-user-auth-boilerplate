@@ -1,7 +1,4 @@
 const request = require("supertest");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const authenticatedToken = require("../../middleware/authenticatedToken");
 const app = require("../../app");
 const Team = require("../../models/team.model");
 const User = require("../../models/user.model");
@@ -38,280 +35,441 @@ const validTeam = {
   agreedTerms: true,
 };
 
+const secondUser = {
+  email: "test2@test.com",
+  password: "P4ssword",
+  passwordConfirm: "P4ssword",
+  // teamName: "testteam",
+  role: "guestUser",
+  agreedTerms: true,
+};
+
 const createTeam = (team = validTeam) => {
   return request(app).post("/auth/create-account").send(team);
 };
 
-const loginUser = () => {
-  return request(app)
-    .post("/auth/login")
-    .send({ email: validTeam.email, password: validTeam.password });
+const validUser = {
+  email: "test@test.com",
+  password: "P4ssword",
 };
 
-describe("Account login", () => {
-  it("Returns 200 status code when user logs in successfully", async () => {
-    await createTeam();
-    const response = await loginUser();
-    expect(response.status).toBe(200);
+const loginUser = (user = validUser) => {
+  return request(app).post("/auth/login").send(validUser);
+};
+
+const logoutUser = () => {
+  return request(app).get("/auth/logout");
+};
+
+const addNewUser = (newUser) => {
+  return request(app).post("/auth/add-user").send(newUser);
+};
+
+describe("AUTH ROUTE - POST /auth/create-account", () => {
+  describe("Account creation succeeds", () => {
+    it("Returns 200 status code when account creation process is successful", async () => {
+      const response = await createTeam();
+      expect(response.status).toBe(200);
+    });
+
+    it("Returns success message when account creation process is successful", async () => {
+      const response = await createTeam();
+      expect(response.body.message).toBe("Account created successfully");
+    });
+
+    it("Saves the team to the database", async () => {
+      await createTeam();
+      const teamList = await Team.find();
+      expect(teamList.length).toBe(1);
+    });
+
+    it("Saves the team name to the database", async () => {
+      await createTeam();
+      const teamList = await Team.find();
+      const savedTeam = teamList[0];
+      expect(savedTeam.teamName).toBe(validTeam.teamName);
+    });
+
+    it("Saves the root user to the database", async () => {
+      await createTeam();
+      const teamList = await Team.find();
+      const savedUser = await teamList[0].users[0];
+      const findUser = await User.find(savedUser);
+      expect(findUser.length).toBe(1);
+    });
+
+    it("Saves the users email and team in the database", async () => {
+      await createTeam();
+      const teamList = await Team.find();
+      const savedUser = await teamList[0].users[0];
+      const findUser = await User.find(savedUser);
+      expect(findUser[0].email).toBe(validTeam.email);
+      expect(findUser[0].team[0]).toBe(validTeam._id);
+    });
+
+    it("Returns user token in response body when account creation is successful", async () => {
+      const response = await createTeam();
+      expect(response.body.token).toBeTruthy();
+    });
   });
 
-  it("Returns user data in response body when login is successful", async () => {
-    await createTeam();
-    const response = await loginUser();
-    expect(response.body.data.email).toBe(validTeam.email);
-  });
+  describe("Account Creation Fails - Missing Inputs", () => {
+    it("Returns 401 when teamname is null", async () => {
+      const newTeam = { ...validTeam, teamName: null };
+      const response = await createTeam(newTeam);
+      expect(response.status).toBe(401);
+    });
 
-  it("Returns user token in response body when login is successful", async () => {
-    await createTeam();
-    const response = await loginUser();
-    expect(response.body.token).toBeTruthy();
-  });
+    it("Returns 401 when email is null", async () => {
+      const newTeam = { ...validTeam, email: null };
+      const response = await createTeam(newTeam);
+      expect(response.status).toBe(401);
+    });
 
-  it("Returns 401 when user does not exist", async () => {
-    await createTeam();
-    const response = await request(app)
-      .post("/auth/login")
-      .send({ email: "abc@abc.com", password: validTeam.password });
-    expect(response.status).toBe(401);
-  });
-});
+    it("Returns 401 when password is null", async () => {
+      const newTeam = { ...validTeam, password: null };
+      const response = await createTeam(newTeam);
+      expect(response.status).toBe(401);
+    });
 
-describe("Account Creation - Success States", () => {
-  it("Returns 200 status code when account creation process is successful", async () => {
-    const response = await createTeam();
-    expect(response.status).toBe(200);
-  });
-
-  it("Returns success message when account creation process is successful", async () => {
-    const response = await createTeam();
-    expect(response.body.message).toBe("Account created successfully");
-  });
-
-  it("Saves the team to the database", async () => {
-    await createTeam();
-    const teamList = await Team.find();
-    expect(teamList.length).toBe(1);
-  });
-
-  it("Saves the team name to the database", async () => {
-    await createTeam();
-    const teamList = await Team.find();
-    const savedTeam = teamList[0];
-    expect(savedTeam.teamName).toBe(validTeam.teamName);
-  });
-
-  it("Saves the root user to the database", async () => {
-    await createTeam();
-    const teamList = await Team.find();
-    const savedUser = await teamList[0].users[0];
-    const findUser = await User.find(savedUser);
-    expect(findUser.length).toBe(1);
-  });
-
-  it("Saves the users email and team in the database", async () => {
-    await createTeam();
-    const teamList = await Team.find();
-    const savedUser = await teamList[0].users[0];
-    const findUser = await User.find(savedUser);
-    expect(findUser[0].email).toBe(validTeam.email);
-    expect(findUser[0].team[0]).toBe(validTeam._id);
-  });
-
-  it("Ensures the user has agreed terms before saving team and user to database", async () => {
-    await createTeam();
-    const teamList = await Team.find();
-    const savedUser = await teamList[0].users[0];
-    const findUser = await User.find(savedUser);
-    expect(findUser[0].agreedTerms).toBe(true);
-    expect(findUser[0].team[0]).toBe(validTeam._id);
-  });
-
-  it("Hashes the users password in the database", async () => {
-    await createTeam();
-    const teamList = await Team.find();
-    const savedUser = await teamList[0].users[0];
-    const findUser = await User.find(savedUser).select("+password");
-    const userPassword = findUser[0].password;
-    expect(userPassword).not.toBe(undefined);
-    expect(userPassword).not.toBe(validTeam.password);
-  });
-});
-
-describe("Account Creation - Failure States", () => {
-  it("Returns 401 when teamname is null", async () => {
-    const newTeam = { ...validTeam, teamName: null };
-    const response = await createTeam(newTeam);
-    expect(response.status).toBe(401);
-  });
-
-  it("Returns 401 when email is null", async () => {
-    const newTeam = { ...validTeam, email: null };
-    const response = await createTeam(newTeam);
-    expect(response.status).toBe(401);
-  });
-
-  it("Returns 401 when password is null", async () => {
-    const newTeam = { ...validTeam, password: null };
-    const response = await createTeam(newTeam);
-    expect(response.status).toBe(401);
-  });
-
-  const password_size = "Password must be at least 6 characters";
-  const password_pattern =
-    "Password have at least 1 uppercase, 1 lowercase and 1 letter";
-
-  it.each`
-    field         | value              | expectedMessage
-    ${"password"} | ${"pass"}          | ${password_size}
-    ${"password"} | ${"alllowercase"}  | ${password_pattern}
-    ${"password"} | ${"alllowercase4"} | ${password_pattern}
-    ${"password"} | ${"EEEEEEEEE5"}    | ${password_pattern}
-  `(
-    "returns $expectedMessage when $field is $value",
-    async ({ field, expectedMessage, value }) => {
+    it("Returns 401 when agreedTerms is false", async () => {
       const newTeam = {
         ...validTeam,
+        agreedTerms: false,
       };
-      newTeam[field] = value;
+      const response = await createTeam(newTeam);
+      expect(response.status).toBe(401);
+    });
+
+    it("Ensures the user has agreed terms before saving team and user to database", async () => {
+      await createTeam();
+      const teamList = await Team.find();
+      const savedUser = await teamList[0].users[0];
+      const findUser = await User.find(savedUser);
+      expect(findUser[0].agreedTerms).toBe(true);
+      expect(findUser[0].team[0]).toBe(validTeam._id);
+    });
+
+    it("Returns message: You need to agree to the terms to create an account", async () => {
+      const newTeam = {
+        ...validTeam,
+        agreedTerms: false,
+      };
+      const response = await createTeam(newTeam);
+      expect(response.body).toMatchObject({
+        error: {
+          errors: [
+            {
+              msg: "You need to agree to the terms to create an account",
+            },
+          ],
+        },
+      });
+    });
+
+    it("Returns message: You must provide a team name when the team name is not provided", async () => {
+      const newTeam = { ...validTeam, teamName: null };
+      const response = await createTeam(newTeam);
+      expect(response.body).toMatchObject({
+        error: {
+          errors: [
+            {
+              msg: "You must provide a team name",
+            },
+          ],
+        },
+      });
+    });
+
+    it("Returns message: You need to agree to the terms to create an account", async () => {
+      const newTeam = { ...validTeam, agreedTerms: false };
+      const response = await createTeam(newTeam);
+      expect(response.body.validationErrors.agreedTerms).toBe(
+        "You need to agree to the terms to create an account"
+      );
+    });
+
+    it("Returns message: A user with this email already exists", async () => {
+      const user1 = {
+        ...validTeam,
+      };
+      const user2 = {
+        ...validTeam,
+        teamName: "testTeam2",
+      };
+
+      await createTeam(user1);
+      const response = await createTeam(user2);
+      expect(response.body.validationErrors.email).toBe(
+        "A user with this email already exists"
+      );
+    });
+  });
+
+  describe("Account Creation Fails - Password Validation", () => {
+    it("Hashes the users password in the database", async () => {
+      await createTeam();
+      const teamList = await Team.find();
+      const savedUser = await teamList[0].users[0];
+      const findUser = await User.find(savedUser).select("+password");
+      const userPassword = findUser[0].password;
+      expect(userPassword).not.toBe(undefined);
+      expect(userPassword).not.toBe(validTeam.password);
+    });
+
+    const password_size = "Password must be at least 6 characters";
+    const password_pattern =
+      "Password have at least 1 uppercase, 1 lowercase and 1 letter";
+
+    it.each`
+      field         | value              | expectedMessage
+      ${"password"} | ${"pass"}          | ${password_size}
+      ${"password"} | ${"alllowercase"}  | ${password_pattern}
+      ${"password"} | ${"alllowercase4"} | ${password_pattern}
+      ${"password"} | ${"EEEEEEEEE5"}    | ${password_pattern}
+    `(
+      "returns $expectedMessage when $field is $value",
+      async ({ field, expectedMessage, value }) => {
+        const newTeam = {
+          ...validTeam,
+        };
+        newTeam[field] = value;
+        const response = await createTeam(newTeam);
+        const body = response.body;
+
+        expect(body.validationErrors[field]).toBe(expectedMessage);
+      }
+    );
+
+    it("Returns 401 when password and passwordConfirm do not match", async () => {
+      const newTeam = {
+        ...validTeam,
+        passwordConfirm: "ThispasswordDoesnt4Match",
+      };
+      const response = await createTeam(newTeam);
+      expect(response.status).toBe(401);
+    });
+
+    it("Returns message: Passwords do not match", async () => {
+      const newTeam = {
+        ...validTeam,
+        passwordConfirm: "ThispasswordDoesnt4Match",
+      };
+      const response = await createTeam(newTeam);
+      expect(response.body.validationErrors.passwordConfirm).toBe(
+        "Passwords do not match"
+      );
+    });
+
+    it("Returns validationErrors field in response body whe validation error occurs", async () => {
+      const newTeam = { ...validTeam, teamName: null };
+      const response = await createTeam(newTeam);
+      expect(response.body.validationErrors).not.toBeUndefined();
+    });
+
+    it("Returns errors for teamName, email, password and passwordConfirm", async () => {
+      const newTeam = {
+        ...validTeam,
+        teamName: null,
+        email: null,
+        password: null,
+        passwordConfirm: "doesnot4match",
+      };
       const response = await createTeam(newTeam);
       const body = response.body;
-      expect(body.validationErrors[field]).toBe(expectedMessage);
-    }
-  );
-
-  it("Returns 401 when password and passwordConfirm do not match", async () => {
-    const newTeam = {
-      ...validTeam,
-      passwordConfirm: "ThispasswordDoesnt4Match",
-    };
-    const response = await createTeam(newTeam);
-    expect(response.status).toBe(401);
+      expect(Object.keys(body.validationErrors)).toEqual([
+        "teamName",
+        "email",
+        "password",
+        "passwordConfirm",
+      ]);
+    });
   });
 
-  it("Returns 401 when agreedTerms is false", async () => {
-    const newTeam = {
-      ...validTeam,
-      agreedTerms: false,
-    };
-    const response = await createTeam(newTeam);
-    expect(response.status).toBe(401);
-  });
+  describe("Account Creation Fails - Confirm Team / User Not Saved", () => {
+    it("Does not save the team when the team name is not provided", async () => {
+      const newTeam = { ...validTeam, teamName: null };
+      const response = await createTeam(newTeam);
+      const team = await Team.find();
+      expect(team.length).toBe(0);
+    });
 
-  it("Returns 401 error if the email is already in use", async () => {
-    const user1 = {
-      ...validTeam,
-    };
-    const user2 = {
-      ...validTeam,
-      teamName: "testTeam2",
-    };
-    await createTeam(user1);
-    const response = await createTeam(user2);
-    expect(response.status).toBe(401);
-  });
+    it("Does not save the user when the team name is not provided", async () => {
+      const newTeam = { ...validTeam, teamName: null };
+      const response = await createTeam(newTeam);
+      const user = await User.find();
+      expect(user.length).toBe(0);
+    });
 
-  it("Returns validationErrors field in response body whe validation error occurs", async () => {
-    const newTeam = { ...validTeam, teamName: null };
-    const response = await createTeam(newTeam);
-    expect(response.body.validationErrors).not.toBeUndefined();
-  });
+    it("Does not save the team or user when agreedTerms is false", async () => {
+      const newTeam = { ...validTeam, agreedTerms: false };
+      const response = await createTeam(newTeam);
+      const user = await User.find();
+      const team = await Team.find();
+      expect(user.length).toBe(0);
+      expect(team.length).toBe(0);
+    });
 
-  it("Returns errors for teamName, email, password and passwordConfirm", async () => {
-    const newTeam = {
-      ...validTeam,
-      teamName: null,
-      email: null,
-      password: null,
-      passwordConfirm: "doesnot4match",
-    };
-    const response = await createTeam(newTeam);
-    const body = response.body;
-    expect(Object.keys(body.validationErrors)).toEqual([
-      "teamName",
-      "email",
-      "password",
-      "passwordConfirm",
-    ]);
-  });
+    it("Does not save the user if the email address is not unique", async () => {
+      const user1 = {
+        ...validTeam,
+      };
+      const user2 = {
+        ...validTeam,
+        teamName: "testTeam2",
+      };
 
-  it("Returns message: Passwords do not match", async () => {
-    const newTeam = {
-      ...validTeam,
-      passwordConfirm: "ThispasswordDoesnt4Match",
-    };
-    const response = await createTeam(newTeam);
-    expect(response.body.validationErrors.passwordConfirm).toBe(
-      "Passwords do not match"
-    );
-  });
-
-  it("Returns message: You must provide a team name when the team name is not provided", async () => {
-    const newTeam = { ...validTeam, teamName: null };
-    const response = await createTeam(newTeam);
-    expect(response.body.validationErrors.teamName).toBe(
-      "You must provide a team name"
-    );
-  });
-
-  it("Returns message: You need to agree to the terms to create an account", async () => {
-    const newTeam = { ...validTeam, agreedTerms: false };
-    const response = await createTeam(newTeam);
-    expect(response.body.validationErrors.agreedTerms).toBe(
-      "You need to agree to the terms to create an account"
-    );
-  });
-
-  it("Returns message: A user with this email already exists", async () => {
-    const user1 = {
-      ...validTeam,
-    };
-    const user2 = {
-      ...validTeam,
-      teamName: "testTeam2",
-    };
-
-    await createTeam(user1);
-    const response = await createTeam(user2);
-    expect(response.body.validationErrors.email).toBe(
-      "A user with this email already exists"
-    );
-  });
-
-  it("Does not save the team when the team name is not provided", async () => {
-    const newTeam = { ...validTeam, teamName: null };
-    const response = await createTeam(newTeam);
-    const team = await Team.find();
-    expect(team.length).toBe(0);
-  });
-
-  it("Does not save the user when the team name is not provided", async () => {
-    const newTeam = { ...validTeam, teamName: null };
-    const response = await createTeam(newTeam);
-    const user = await User.find();
-    expect(user.length).toBe(0);
-  });
-
-  it("Does not save the team or user when agreedTerms is false", async () => {
-    const newTeam = { ...validTeam, agreedTerms: false };
-    const response = await createTeam(newTeam);
-    const user = await User.find();
-    const team = await Team.find();
-    expect(user.length).toBe(0);
-    expect(team.length).toBe(0);
-  });
-
-  it("Does not save the user if the email address is not unique", async () => {
-    const user1 = {
-      ...validTeam,
-    };
-    const user2 = {
-      ...validTeam,
-      teamName: "testTeam2",
-    };
-
-    await createTeam(user1);
-    await createTeam(user2);
-    const response = await User.find({ user2: user2.email });
-    expect(response.length).toBe(0);
+      await createTeam(user1);
+      await createTeam(user2);
+      const response = await User.find({ user2: user2.email });
+      expect(response.length).toBe(0);
+    });
   });
 });
+
+describe("AUTH ROUTE - POST /auth/login", () => {
+  describe("User Login Succeeds", () => {
+    it("Returns 200 status code when user logs in successfully", async () => {
+      await createTeam();
+      const response = await loginUser();
+      expect(response.status).toBe(200);
+    });
+
+    it("Returns user data in response body when login is successful", async () => {
+      await createTeam();
+      const response = await loginUser();
+      expect(response.body.data.email).toBe(validTeam.email);
+    });
+
+    it("Returns user token in response body when login is successful", async () => {
+      await createTeam();
+      const response = await loginUser();
+      expect(response.body.token).toBeTruthy();
+    });
+  });
+
+  describe("User Login Fails - Missing Inputs", () => {
+    it("Returns 401 status code if user email is null", async () => {
+      const invalidUser = { ...validUser, email: null };
+      const response = await loginUser(invalidUser);
+      expect(response.status).toBe(401);
+    });
+
+    it("Returns 401 status code if user email is undefined", async () => {
+      const invalidUser = { ...validUser, email: undefined };
+      const response = await loginUser(invalidUser);
+      expect(response.status).toBe(401);
+    });
+
+    it("Returns 401 status code if user email password is null", async () => {
+      const invalidUser = { ...validUser, password: null };
+      const response = await loginUser(invalidUser);
+      expect(response.status).toBe(401);
+    });
+
+    it("Returns 401 status code if user email password is undefined", async () => {
+      const invalidUser = { ...validUser, password: undefined };
+      const response = await loginUser(invalidUser);
+      expect(response.status).toBe(401);
+    });
+
+    it("Returns 401 if no email or password", async () => {
+      const invalidUser = {};
+      const response = await loginUser(invalidUser);
+      expect(response.status).toBe(401);
+    });
+  });
+
+  describe("User Login Fails - Invalid Data", () => {
+    it("Returns 401 status code if user email is invalid", async () => {
+      const invalidUser = { ...validUser, email: "invalid@test.com" };
+      const response = await loginUser(invalidUser);
+      expect(response.status).toBe(401);
+    });
+
+    it("Returns 401 status code if user email password is incorrect", async () => {
+      const invalidUser = { ...validUser, password: "invalid" };
+      const response = await loginUser(invalidUser);
+      expect(response.status).toBe(401);
+    });
+
+    it("Returns message: Please enter valid email and password", async () => {
+      const invalidUser = {};
+      const response = await loginUser(invalidUser);
+      expect(response.body).toMatchObject({
+        error: {
+          errors: [
+            {
+              msg: "Please enter valid email and password",
+            },
+          ],
+          isOperations: true,
+          statusCode: 401,
+          statusState: "fail",
+        },
+      });
+    });
+
+    it("Returns message: Please enter valid email and password if email is incorrect", async () => {
+      const invalidUser = { ...validUser, email: "invalid@test.com" };
+      const response = await loginUser(invalidUser);
+      expect(response.body.message).toBe(
+        "Please enter valid email and password"
+      );
+    });
+
+    it("Returns message: Please enter valid email and password if password is incorrect", async () => {
+      const invalidUser = { ...validUser, password: "incorrect" };
+      const response = await loginUser(invalidUser);
+      expect(response.body.message).toBe(
+        "Please enter valid email and password"
+      );
+    });
+  });
+});
+
+describe("AUTH ROUTE - POST /auth/logout", () => {
+  describe("User Logout Succeeds", () => {
+    it("Returns 200 status code when user logs out successfully", async () => {
+      await loginUser();
+      const response = await logoutUser();
+      expect(response.status).toBe(200);
+    });
+
+    it("Returns no data when user logs out successfully", async () => {
+      await loginUser();
+      const response = await logoutUser();
+      const expectedRes = {
+        success: true,
+        data: {},
+      };
+      expect(response.body).toMatchObject(expectedRes);
+    });
+
+    it("Does not return token after user is logged out", async () => {
+      await loginUser();
+      const response = await logoutUser();
+      expect(response.body.token).toBeFalsy();
+    });
+  });
+});
+
+// describe("Auth POST /adduser", () => {
+//   it("Returns 200 status code when user created successfully", async () => {
+//     const response = await createTeam();
+//     console.log(response.body);
+//     const teamNum = response.body.data.team;
+
+//     const userToAdd = { ...secondUser, teamId: teamNum };
+
+//     const response2 = await addNewUser(userToAdd);
+
+//     expect(response2.status).toBe(200);
+//     expect(response2.body.data.team).toBe(teamNum);
+//   });
+// });
+
+// describe("AUTH PATCH /update-password", () => {
+//   it("Should return 200 when password updated successfully", () => {
+//   })
+// })

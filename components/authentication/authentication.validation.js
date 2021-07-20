@@ -47,11 +47,11 @@ exports.newAccountValidation = [
     .bail(),
 ];
 
-exports.validationErrors = async (req, res, next) => {
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    return next(new ErrorResponse("Validation Failure", 401, errors.array()));
-  }
-  return next();
-};
+// exports.validationErrors = async (req, res, next) => {
+//   const errors = validationResult(req);
+//   if (!errors.isEmpty()) {
+//     console.log(new ErrorResponse("Validation Failure", 401, errors.array()));
+//     return next(new ErrorResponse("Validation Failure", 401, errors.array()));
+//   }
+//   return next();
+// };

@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "jest  --testEnvironment=node --detectOpenHandles  --watch --verbose ",
+    "test": "jest  --testEnvironment=node --detectOpenHandles  --coverage --watchAll --verbose --collectCoverage=true --coverageReporters=lcov  --coverageDirectory=./jestOutput/coverage-report/ ",
     "start": "nodemon server"
   },
   "author": "",
@@ -21,6 +21,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.11.19",
     "morgan": "^1.10.0",
+    "nodemailer": "^6.6.2",
     "xss-clean": "^0.1.1"
   },
   "devDependencies": {
