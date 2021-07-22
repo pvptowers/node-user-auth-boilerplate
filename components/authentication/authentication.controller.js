@@ -5,10 +5,10 @@ const crypto = require("crypto");
 const authenticatedToken = require("../../middleware/authenticatedToken");
 const Team = require("../../models/team.model");
 const mongoose = require("mongoose");
-const { check, validationResult } = require("express-validator");
 const ErrorResponse = require("../../middleware/errorResponse");
 const sendEmail = require("../../utils/email");
 const { createTeam } = require("../teams/team.service");
+const { LoginUser } = require("./authentication.service");
 // DESCRIPTION: CREATE A NEW ACCOUNT & ROOT USER
 // ROUTE: POST /auth/create-account
 // ACCESS: Public
@@ -40,31 +40,12 @@ exports.createAccount = asyncHandler(async (req, res, next) => {
 // DESCRIPTION: Authenticate/Login Existing User
 // ROUTE: POST /auth/login
 // ACCESS: Public
-exports.login = async (req, res, next) => {
+exports.login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
-  //CHECK IF EMAIL & PASSWORD EXIST
-  if (!email || !password) {
-    return next(
-      new ErrorResponse(`Please enter valid email and password`, 401)
-    );
-  }
-
-  // CHECK IF USER EXISTS
-  const user = await User.findOne({ email }).select("+password");
-  if (!user) {
-    return next(
-      new ErrorResponse("Please enter valid email and password", 401)
-    );
-  }
-  //CHECK IF PASSWORD IS CORRECT
-  const isMatch = await user.matchPassword(password);
-  if (!isMatch) {
-    return next(new ErrorResponse(`Invalid Credentials`, 401));
-  }
-
+  const user = await LoginUser(email, password, next);
   //IF PASSWORD IS CORRECT, SEND TOKEN TO CLIENT
   authenticatedToken(user, 200, res);
-};
+});
 
 // DESCRIPTION: LOGOUT USER AND CLEAR TOKEN
 // ROUTE: POST /auth/logout
