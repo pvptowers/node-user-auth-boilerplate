@@ -10,13 +10,6 @@ const createTeam = asyncHandler(async (teamName) => {
   });
 });
 
-// const getTeamById = asyncHandler(async (teamId) => {
-//   const team = await Team.findById(teamId);
-//   if (!team) {
-//     return next(new ErrorResponse("No Team Exists With This ID", 404));
-//   }
-// });
-
 const getTeamById = async (teamId, next) => {
   const team = await Team.findById(teamId);
   if (!team) {

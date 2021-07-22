@@ -5,14 +5,9 @@ const authenticatedToken = require("../../middleware/authenticatedToken");
 const ErrorResponse = require("../../middleware/errorResponse");
 const User = require("../../models/user.model");
 const teamService = require("./team.service");
-
+const userService = require("../users/user.service");
 exports.getTeam = asyncHandler(async (req, res, next) => {
   const team = await teamService.getTeamById(req.params._id, next);
-
-  // const team = await Team.findById(req.params._id);
-  // if (!team) {
-  //   return next(new ErrorResponse("No Team Exists With This ID", 404));
-  // }
   res.status(200).json({
     success: true,
     data: team,
@@ -24,15 +19,17 @@ exports.addUser = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse("Please provide a team ID", 401));
   }
 
-  const newUser = await User.create({
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    signupDate: Date.now(),
-    team: req.body.teamId,
-    role: req.body.role,
-    agreedTerms: req.body.agreedTerms,
-  });
+  const newUser = await userService.createUser(req.body);
+
+  // const newUser = await User.create({
+  //   email: req.body.email,
+  //   password: req.body.password,
+  //   passwordConfirm: req.body.passwordConfirm,
+  //   signupDate: Date.now(),
+  //   team: req.body.teamId,
+  //   role: req.body.role,
+  //   agreedTerms: req.body.agreedTerms,
+  // });
 
   const team = await Team.findById(req.body.teamId);
   team.users.push(newUser);

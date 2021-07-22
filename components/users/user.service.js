@@ -7,7 +7,7 @@ const createUser = asyncHandler(async (userBody, newAccount) => {
     password: userBody.password,
     passwordConfirm: userBody.passwordConfirm,
     signupDate: Date.now(),
-    team: newAccount,
+    team: newAccount || userBody.teamId,
     role: userBody.role,
     agreedTerms: userBody.agreedTerms,
   });
