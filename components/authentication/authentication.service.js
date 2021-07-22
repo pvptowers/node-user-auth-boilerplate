@@ -38,7 +38,15 @@ const loginUser = asyncHandler(async (email, password, next) => {
   return user;
 });
 
+const logoutUser = asyncHandler(async () => {
+  res.cookie("token", "none", {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+});
+
 module.exports = {
   createAccount,
   loginUser,
+  logoutUser,
 };
