@@ -153,7 +153,7 @@ describe("TEAM ROUTE POST /team/addUser", () => {
         const response = await addNewUser(newUserToAdd);
         expect(response.status).toBe(401);
       });
-      fit("Returns 401 when email is not provided", async () => {
+      it("Returns 401 when email is not provided", async () => {
         const teamResponse = await createTeam();
         const newUserToAdd = { ...secondUser, email: "" };
         const response = await addNewUser(newUserToAdd);

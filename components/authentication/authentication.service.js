@@ -3,6 +3,8 @@ const ErrorResponse = require("../../middleware/errorResponse");
 const mongoose = require("mongoose");
 const User = require("../../models/user.model");
 const Team = require("../../models/team.model");
+const sendEmail = require("../../utils/email");
+
 const teamService = require("../teams/team.service");
 const userService = require("../users/user.service");
 
@@ -45,8 +47,13 @@ const logoutUser = asyncHandler(async () => {
   });
 });
 
+// const forgotPasswordRequest = asyncHandler(async (newPasswordBody) => {
+
+// });
+
 module.exports = {
   createAccount,
   loginUser,
   logoutUser,
+  //   forgotPasswordRequest,
 };

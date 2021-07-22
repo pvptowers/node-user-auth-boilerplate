@@ -13,7 +13,6 @@ const authService = require("./authentication.service");
 // ACCESS: Public
 exports.createAccount = asyncHandler(async (req, res, next) => {
   const newUser = await authService.createAccount(req.body);
-
   const messagetosend = "Account created successfully";
   authenticatedToken(newUser, 200, res, messagetosend);
 });
@@ -22,13 +21,8 @@ exports.createAccount = asyncHandler(async (req, res, next) => {
 // ROUTE: POST /auth/login
 // ACCESS: Public
 exports.login = asyncHandler(async (req, res, next) => {
-  //Destructure email and password from req.body
   const { email, password } = req.body;
-
-  //Call loginUser, passing in email and password
   const user = await authService.loginUser(email, password, next);
-
-  //If user is returned from loginUser, return authenticatedToken
   authenticatedToken(user, 200, res);
 });
 
@@ -112,10 +106,5 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
   await user.save();
   //Update changedPasswordAt property for the user
 
-  // res.status(200).json({
-  //   status: "success",
-  //   token,
-  // });
-  //Log the user in, send JWT
   authenticatedToken(user, 200, res);
 });

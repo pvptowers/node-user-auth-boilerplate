@@ -4,11 +4,15 @@ const Team = require("../../models/team.model");
 const authenticatedToken = require("../../middleware/authenticatedToken");
 const ErrorResponse = require("../../middleware/errorResponse");
 const User = require("../../models/user.model");
+const teamService = require("./team.service");
+
 exports.getTeam = asyncHandler(async (req, res, next) => {
-  const team = await Team.findById(req.params._id);
-  if (!team) {
-    return next(new ErrorResponse("No Team Exists With This ID", 404));
-  }
+  const team = await teamService.getTeamById(req.params._id, next);
+
+  // const team = await Team.findById(req.params._id);
+  // if (!team) {
+  //   return next(new ErrorResponse("No Team Exists With This ID", 404));
+  // }
   res.status(200).json({
     success: true,
     data: team,
