@@ -10,4 +10,8 @@ const createTeam = asyncHandler(async (teamName) => {
   });
 });
 
-module.exports = { createTeam };
+const getTeamById = asyncHandler(async (teamId) => {
+  return await Team.findById(teamId);
+});
+
+module.exports = { createTeam, getTeamById };

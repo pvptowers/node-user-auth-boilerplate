@@ -7,32 +7,13 @@ const Team = require("../../models/team.model");
 const mongoose = require("mongoose");
 const ErrorResponse = require("../../middleware/errorResponse");
 const sendEmail = require("../../utils/email");
-const { createTeam } = require("../teams/team.service");
-const { loginUserService } = require("./authentication.service");
+const authService = require("./authentication.service");
 // DESCRIPTION: CREATE A NEW ACCOUNT & ROOT USER
 // ROUTE: POST /auth/create-account
 // ACCESS: Public
 exports.createAccount = asyncHandler(async (req, res, next) => {
-  const { teamName } = req.body;
-  const newAccount = await createTeam(teamName);
-  // const newAccount = await Team.create({
-  //   teamName: req.body.teamName,
-  //   _id: new mongoose.Types.ObjectId(),
-  // });
-  const newUser = await User.create({
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    signupDate: Date.now(),
-    team: newAccount._id,
-    role: req.body.role,
-    agreedTerms: req.body.agreedTerms,
-  });
+  const newUser = await authService.createAccount(req.body);
 
-  const accounts = await Team.findById(newAccount._id);
-
-  accounts.users.push(newUser);
-  await accounts.save();
   const messagetosend = "Account created successfully";
   authenticatedToken(newUser, 200, res, messagetosend);
 });
@@ -44,10 +25,10 @@ exports.login = asyncHandler(async (req, res, next) => {
   //Destructure email and password from req.body
   const { email, password } = req.body;
 
-  //Call loginUserService, passing in email and password
-  const user = await loginUserService(email, password, next);
+  //Call loginUser, passing in email and password
+  const user = await authService.loginUser(email, password, next);
 
-  //If user is returned from loginUserService, return authenticatedToken
+  //If user is returned from loginUser, return authenticatedToken
   authenticatedToken(user, 200, res);
 });
 
