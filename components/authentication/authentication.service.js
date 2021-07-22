@@ -2,11 +2,10 @@ const asyncHandler = require("../../middleware/asyncHandler");
 const ErrorResponse = require("../../middleware/errorResponse");
 const mongoose = require("mongoose");
 const User = require("../../models/user.model");
-const LoginUser = asyncHandler(async (email, password, next) => {
-  console.log("REACHES HERE", email, password);
+
+const loginUserService = asyncHandler(async (email, password, next) => {
   //CHECK IF EMAIL & PASSWORD EXIST
   if (!email || !password) {
-    console.log("WE REACH THIS ERROR POINT");
     return next(
       new ErrorResponse(`Please enter valid email and password`, 401)
     );
@@ -28,5 +27,5 @@ const LoginUser = asyncHandler(async (email, password, next) => {
 });
 
 module.exports = {
-  LoginUser,
+  loginUserService,
 };

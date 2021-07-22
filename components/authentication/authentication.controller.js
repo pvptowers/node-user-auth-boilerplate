@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 const ErrorResponse = require("../../middleware/errorResponse");
 const sendEmail = require("../../utils/email");
 const { createTeam } = require("../teams/team.service");
-const { LoginUser } = require("./authentication.service");
+const { loginUserService } = require("./authentication.service");
 // DESCRIPTION: CREATE A NEW ACCOUNT & ROOT USER
 // ROUTE: POST /auth/create-account
 // ACCESS: Public
@@ -41,9 +41,13 @@ exports.createAccount = asyncHandler(async (req, res, next) => {
 // ROUTE: POST /auth/login
 // ACCESS: Public
 exports.login = asyncHandler(async (req, res, next) => {
+  //Destructure email and password from req.body
   const { email, password } = req.body;
-  const user = await LoginUser(email, password, next);
-  //IF PASSWORD IS CORRECT, SEND TOKEN TO CLIENT
+
+  //Call loginUserService, passing in email and password
+  const user = await loginUserService(email, password, next);
+
+  //If user is returned from loginUserService, return authenticatedToken
   authenticatedToken(user, 200, res);
 });
 
