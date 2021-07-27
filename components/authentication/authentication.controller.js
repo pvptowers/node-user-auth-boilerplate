@@ -8,13 +8,17 @@ const mongoose = require("mongoose");
 const ErrorResponse = require("../../middleware/errorResponse");
 const sendEmail = require("../../utils/email");
 const authService = require("./authentication.service");
+const tokenService = require("./token.service");
 // DESCRIPTION: CREATE A NEW ACCOUNT & ROOT USER
 // ROUTE: POST /auth/create-account
 // ACCESS: Public
 exports.createAccount = asyncHandler(async (req, res, next) => {
   const newUser = await authService.createAccount(req.body);
-  const messagetosend = "Account created successfully";
-  authenticatedToken(newUser, 200, res, messagetosend);
+  const token = await tokenService.generateToken(newUser);
+  res.status(200).send({ newUser, token });
+  // const messagetosend = "Account created successfully";
+
+  // authenticatedToken(newUser, 200, res, messagetosend);
 });
 
 // DESCRIPTION: Authenticate/Login Existing User
@@ -37,74 +41,31 @@ exports.logout = asyncHandler(async (req, res, next) => {
   });
 });
 
+// DESCRIPTION: REQUEST FOR FORGOTTEN USER PASSWORD
+// ROUTE: POST /auth/forgot-password
+// ACCESS: Public
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
-  //Get user based on POSTED email
-  const user = await User.findOne({ email: req.body.email });
+  const resetToken = await authService.passwordResetToken(req.body.email);
+  const urlProtocol = req.protocol;
+  const urlHost = req.get("host");
+  await authService.forgotPasswordRequest(
+    urlProtocol,
+    urlHost,
+    resetToken,
+    req.body.email
+  );
 
-  if (!user) {
-    return next(
-      new ErrorResponse("There is no user with that email address", 404)
-    );
-  }
-  //Generate the random reset token
-
-  const resetToken = user.createPasswordResetToken();
-  await user.save({ validateBeforeSave: false });
-
-  //Send it back as an email
-  const resetURL = `${req.protocol}://${req.get(
-    "host"
-  )}/auth/resetPassword/${resetToken}}`;
-
-  const message = `Forgot your password? Submit a patch request with your new password and passwordConfirm to: ${resetURL}. \n If you didn't forget your password, please ignore this email!`;
-
-  try {
-    await sendEmail({
-      email: req.body.email,
-      subject: "Your password reset token (Valid for 10 mins)",
-      message,
-    });
-
-    res.status(200).json({
-      status: "Success",
-      message: "token sent to email",
-    });
-  } catch (err) {
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save({ validateBeforeSave: false });
-
-    return next(
-      new ErrorResponse(
-        "There was an error sending the email, try again later"
-      ),
-      500
-    );
-  }
+  res.status(200).json({
+    status: "Success",
+    message: "token sent to email",
+  });
 });
 
 exports.resetPassword = asyncHandler(async (req, res, next) => {
-  //Get user based on the token
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(req.params.token)
-    .digest("hex");
-
-  const user = await User.findOne({
-    passwordResetToken: hashedToken,
-    passwordResetExpires: { $gt: Date.now() },
-  });
-  //If token has not expired and there is a user, set the new password
-  if (!user) {
-    return next(new ErrorResponse("Token is invalid or has expired", 400));
-  }
-
-  user.password = req.body.password;
-  user.passwordConfirm = req.body.passwordConfirm;
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
-  await user.save();
-  //Update changedPasswordAt property for the user
-
+  const user = await authService.resetPassword(
+    req.params.token,
+    req.body.password,
+    req.body.passwordConfirm
+  );
   authenticatedToken(user, 200, res);
 });
