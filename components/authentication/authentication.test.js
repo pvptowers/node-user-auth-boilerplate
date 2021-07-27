@@ -3,7 +3,7 @@ const app = require("../../app");
 const Team = require("../../models/team.model");
 const User = require("../../models/user.model");
 const mongoose = require("mongoose");
-
+const authService = require("./authentication.service");
 beforeAll(async () => {
   jest.setTimeout(20000);
 
@@ -61,9 +61,9 @@ const logoutUser = () => {
   return request(app).get("/auth/logout");
 };
 
-const addNewUser = (newUser) => {
-  return request(app).post("/auth/add-user").send(newUser);
-};
+// const addNewUser = (newUser) => {
+//   return request(app).post("/auth/add-user").send(newUser);
+// };
 
 describe("AUTH ROUTE - POST /auth/create-account", () => {
   describe("Account creation succeeds", () => {
@@ -393,21 +393,24 @@ describe("AUTH ROUTE - POST /auth/login", () => {
       expect(response.status).toBe(401);
     });
 
-    it("Returns message: Please enter valid email and password", async () => {
+    it("Returns message: Please enter valid email and password if no email and password provided", async () => {
       const invalidUser = {};
       const response = await loginUser(invalidUser);
-      expect(response.body).toMatchObject({
-        error: {
-          errors: [
-            {
-              msg: "Please enter valid email and password",
-            },
-          ],
-          isOperations: true,
-          statusCode: 401,
-          statusState: "fail",
-        },
-      });
+      expect(response.body.message).toBe(
+        "Please enter valid email and password"
+      );
+      // expect(response.body).toMatchObject({
+      //   error: {
+      //     errors: [
+      //       {
+      //         msg: "Please enter valid email and password",
+      //       },
+      //     ],
+      //     isOperations: true,
+      //     statusCode: 401,
+      //     statusState: "fail",
+      //   },
+      // });
     });
 
     it("Returns message: Please enter valid email and password if email is incorrect", async () => {
@@ -473,3 +476,28 @@ describe("AUTH ROUTE - POST /auth/logout", () => {
 //   it("Should return 200 when password updated successfully", () => {
 //   })
 // })
+
+describe("Auth POST /forgot-password", () => {
+  it("Returns status 200", async () => {
+    const team = await createTeam();
+    const user = await loginUser(validUser);
+    const userEmail = user.body.data.email;
+    // const resetToken = await authService.passwordResetToken(userEmail);
+    // const urlProtocol = "http";
+    // const urlHost = "localhost:5000";
+    // await authService.forgotPasswordRequest(
+    //   urlProtocol,
+    //   urlHost,
+    //   resetToken,
+    //   userEmail
+    // );
+
+    console.log(user.body.data.email);
+    const response = await request(app)
+      .post("/auth/forgotpassword")
+      .send(userEmail);
+
+    console.log(response.body);
+    expect(response.status).toBe(200);
+  });
+});

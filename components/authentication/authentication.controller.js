@@ -1,24 +1,20 @@
-//LOCAL DEPENDENCIES
-const User = require("../../models/user.model");
 const asyncHandler = require("../../middleware/asyncHandler");
-const crypto = require("crypto");
 const authenticatedToken = require("../../middleware/authenticatedToken");
-const Team = require("../../models/team.model");
-const mongoose = require("mongoose");
-const ErrorResponse = require("../../middleware/errorResponse");
-const sendEmail = require("../../utils/email");
 const authService = require("./authentication.service");
 const tokenService = require("./token.service");
+
 // DESCRIPTION: CREATE A NEW ACCOUNT & ROOT USER
 // ROUTE: POST /auth/create-account
 // ACCESS: Public
 exports.createAccount = asyncHandler(async (req, res, next) => {
   const newUser = await authService.createAccount(req.body);
   const token = await tokenService.generateToken(newUser);
-  res.status(200).send({ newUser, token });
-  // const messagetosend = "Account created successfully";
-
-  // authenticatedToken(newUser, 200, res, messagetosend);
+  res.status(200).send({
+    data: { newUser },
+    token,
+    success: true,
+    message: "Account created successfully",
+  });
 });
 
 // DESCRIPTION: Authenticate/Login Existing User
@@ -46,11 +42,9 @@ exports.logout = asyncHandler(async (req, res, next) => {
 // ACCESS: Public
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
   const resetToken = await authService.passwordResetToken(req.body.email);
-  const urlProtocol = req.protocol;
-  const urlHost = req.get("host");
   await authService.forgotPasswordRequest(
-    urlProtocol,
-    urlHost,
+    req.protocol,
+    req.get("host"),
     resetToken,
     req.body.email
   );
