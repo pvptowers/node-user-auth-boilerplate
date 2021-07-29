@@ -1,7 +1,4 @@
 const request = require("supertest");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const authenticatedToken = require("../../middleware/authenticatedToken");
 const app = require("../../app");
 const Team = require("../../models/team.model");
 const User = require("../../models/user.model");
@@ -69,28 +66,30 @@ describe("TEAM ROUTE - GET /team/get-team", () => {
   describe("Get Team Succeeds", () => {
     it("Should return 200 status code when get request succeeds", async () => {
       const createTeamResponse = await createTeam();
-      const id = createTeamResponse.body.data.team;
+      const id = createTeamResponse.body.data.newUser.team;
+      console.log(createTeamResponse.body);
+      console.log("THE TEAM ID", id);
       const response = await getTeam(id);
       expect(response.status).toBe(200);
     });
 
     it("Should return team ID in response body when get request is successful", async () => {
       const createTeamResponse = await createTeam();
-      const id = createTeamResponse.body.data.team;
+      const id = createTeamResponse.body.data.newUser.team;
       const response = await getTeam(id);
       expect(response.body.data._id).toBe(id);
     });
 
     it("Should return ID of users in response body when get request is successful", async () => {
       const createTeamResponse = await createTeam();
-      const id = createTeamResponse.body.data.team;
+      const id = createTeamResponse.body.data.newUser.team;
       const response = await getTeam(id);
       expect(response.body.data.users).toBeTruthy();
     });
 
     it("Should return team name in response body when get request is successful", async () => {
       const createTeamResponse = await createTeam();
-      const id = createTeamResponse.body.data.team;
+      const id = createTeamResponse.body.data.newUser.team;
       const response = await getTeam(id);
       expect(response.body.data.teamName).toBe(validTeam.teamName);
     });
@@ -112,7 +111,7 @@ describe("TEAM ROUTE POST /team/addUser", () => {
   describe("Add User To Team Succeeds", () => {
     it("Returns 200 status code when user successfully added to team", async () => {
       const teamResponse = await createTeam();
-      const teamId = teamResponse.body.data.team;
+      const teamId = teamResponse.body.data.newUser.team;
       const newUserToAdd = { ...secondUser, teamId: teamId };
       const response = await addNewUser(newUserToAdd);
       expect(response.status).toBe(200);
@@ -120,7 +119,7 @@ describe("TEAM ROUTE POST /team/addUser", () => {
 
     it("Saves the new user to the database", async () => {
       const teamResponse = await createTeam();
-      const teamId = teamResponse.body.data.team;
+      const teamId = teamResponse.body.data.newUser.team;
       const newUserToAdd = { ...secondUser, teamId: teamId };
       const response = await addNewUser(newUserToAdd);
       const newUserId = response.body.data._id;
@@ -130,7 +129,7 @@ describe("TEAM ROUTE POST /team/addUser", () => {
 
     it("Saves the users email in the database", async () => {
       const teamResponse = await createTeam();
-      const teamId = teamResponse.body.data.team;
+      const teamId = teamResponse.body.data.newUser.team;
       const newUserToAdd = { ...secondUser, teamId: teamId };
       const response = await addNewUser(newUserToAdd);
       const newUserId = response.body.data._id;
@@ -140,7 +139,7 @@ describe("TEAM ROUTE POST /team/addUser", () => {
 
     it("Returns user token in response body when creating a new user is successful", async () => {
       const teamResponse = await createTeam();
-      const teamId = teamResponse.body.data.team;
+      const teamId = teamResponse.body.data.newUser.team;
       const newUserToAdd = { ...secondUser, teamId: teamId };
       const response = await addNewUser(newUserToAdd);
       expect(response.body.token).toBeTruthy();

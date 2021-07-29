@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const ErrorResponse = require("../../middleware/errorResponse");
 const Team = require("../../models/team.model");
 const asyncHandler = require("../../middleware/asyncHandler");
+const { restart } = require("nodemon");
 
 const createTeam = asyncHandler(async (teamName) => {
   return await Team.create({
@@ -13,9 +14,18 @@ const createTeam = asyncHandler(async (teamName) => {
 const getTeamById = async (teamId, next) => {
   const team = await Team.findById(teamId);
   if (!team) {
-    return next(new ErrorResponse("No Team Exists With This ID", 404));
+    throw new ErrorResponse("No Team Exists With This ID", 404);
   }
   return team;
 };
+
+// const updateTeam = async ({updatedTeamDetails}) => {
+//  const {teamName} = updatedTeamDetails;
+//  if (!teamName) {
+//    throw new ErrorResponse("You need to provide a teamName")
+//  } else {
+
+//  }
+// }
 
 module.exports = { createTeam, getTeamById };

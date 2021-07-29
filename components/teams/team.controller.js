@@ -6,6 +6,7 @@ const ErrorResponse = require("../../middleware/errorResponse");
 const User = require("../../models/user.model");
 const teamService = require("./team.service");
 const userService = require("../users/user.service");
+
 exports.getTeam = asyncHandler(async (req, res, next) => {
   const team = await teamService.getTeamById(req.params._id, next);
   res.status(200).json({
@@ -39,6 +40,7 @@ exports.addUser = asyncHandler(async (req, res, next) => {
 });
 
 exports.updateTeam = asyncHandler(async (req, res, next) => {
+  // const team = await teamService.getTeamById(req.params._id);
   const team = await Team.findById(req.params._id);
   if (!team) {
     return next(new ErrorResponse("No Team Exists with this ID"));
