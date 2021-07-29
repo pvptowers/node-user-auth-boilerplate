@@ -21,18 +21,8 @@ exports.addUser = asyncHandler(async (req, res, next) => {
   }
 
   const newUser = await userService.createUser(req.body);
-
-  // const newUser = await User.create({
-  //   email: req.body.email,
-  //   password: req.body.password,
-  //   passwordConfirm: req.body.passwordConfirm,
-  //   signupDate: Date.now(),
-  //   team: req.body.teamId,
-  //   role: req.body.role,
-  //   agreedTerms: req.body.agreedTerms,
-  // });
-
-  const team = await Team.findById(req.body.teamId);
+  const team = await teamService.getTeamById(req.body.teamId);
+  //const team = await Team.findById(req.body.teamId);
   team.users.push(newUser);
   await team.save();
 

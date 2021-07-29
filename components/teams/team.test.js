@@ -3,7 +3,6 @@ const app = require("../../app");
 const Team = require("../../models/team.model");
 const User = require("../../models/user.model");
 const mongoose = require("mongoose");
-const { deleteTeam } = require("./team.controller");
 
 beforeAll(async () => {
   jest.setTimeout(20000);
@@ -62,6 +61,13 @@ const deleteATeam = (teamId) => {
 const addNewUser = (newUser) => {
   return request(app).post("/auth/add-user").send(newUser);
 };
+
+const updateTheTeam = (updatedTeamDetails, teamId) => {
+  return request(app)
+    .put(`/auth/update-team/${teamId}`)
+    .send(updatedTeamDetails);
+};
+
 describe("TEAM ROUTE - GET /team/get-team", () => {
   describe("Get Team Succeeds", () => {
     it("Should return 200 status code when get request succeeds", async () => {
@@ -159,6 +165,16 @@ describe("TEAM ROUTE POST /team/addUser", () => {
         expect(response.status).toBe(401);
       });
     });
+  });
+});
+
+describe("UPDATE TEAM", () => {
+  it("Should return 200", async () => {
+    const newTeam = await createTeam();
+    const id = newTeam.body.data.newUser.team;
+    const newTeamName = "ChangedTeam";
+    const response = await updateTheTeam({ teamName: newTeamName }, id);
+    expect(response.status).toBe(200);
   });
 });
 
