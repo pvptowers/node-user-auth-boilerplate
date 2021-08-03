@@ -1,12 +1,11 @@
 const mongoose = require("mongoose");
 const asyncHandler = require("../../middleware/asyncHandler");
 const Team = require("../../models/team.model");
-const authenticatedToken = require("../../middleware/authenticatedToken");
 const ErrorResponse = require("../../middleware/errorResponse");
 const User = require("../../models/user.model");
 const teamService = require("./team.service");
 const userService = require("../users/user.service");
-
+const tokenService = require("../authentication/token.service");
 exports.getTeam = asyncHandler(async (req, res, next) => {
   const team = await teamService.getTeamById(req.params._id, next);
   res.status(200).json({
@@ -22,11 +21,10 @@ exports.addUser = asyncHandler(async (req, res, next) => {
 
   const newUser = await userService.createUser(req.body);
   const team = await teamService.getTeamById(req.body.teamId);
-  //const team = await Team.findById(req.body.teamId);
   team.users.push(newUser);
   await team.save();
 
-  authenticatedToken(newUser, 200, res);
+  tokenService.sendAuthToken(newUser, 200, res);
 });
 
 exports.updateTeam = asyncHandler(async (req, res, next) => {

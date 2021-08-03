@@ -1,6 +1,6 @@
-const generateToken = (user) => {
+const sendAuthToken = (user, statusCode, res, messagetosend) => {
   const token = user.getAuthJwtToken();
-  const options = {
+  const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
@@ -9,6 +9,13 @@ const generateToken = (user) => {
   if (process.env.NODE_ENV === "production") {
     options.secure = true;
   }
-  return token;
+
+  //remove the password from the output
+  user.password = undefined;
+
+  res
+    .status(statusCode)
+    .cookie("token", token, cookieOptions)
+    .json({ success: true, token, data: user, message: messagetosend });
 };
-module.exports = { generateToken };
+module.exports = { sendAuthToken };

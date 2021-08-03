@@ -5,7 +5,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../../models/user.model");
 //REQUIRED MIDDLEWARE
 const asyncHandler = require("../../middleware/asyncHandler");
-const authenticatedToken = require("../../middleware/authenticatedToken");
 //REQUIRED SERVICES
 const authService = require("./authentication.service");
 const tokenService = require("./token.service");
@@ -22,15 +21,7 @@ exports.register = asyncHandler(async (req, res, next) => {
     agreedTerms: req.body.agreedTerms,
     teamName: req.body.teamName,
   });
-
-  //const newUser = await authService.createAccount(req.body);
-  const token = await tokenService.generateToken(newUser);
-  res.status(200).send({
-    data: { newUser },
-    token,
-    success: true,
-    message: "Account created successfully",
-  });
+  tokenService.sendAuthToken(newUser, 200, res);
 });
 
 // DESCRIPTION: Authenticate/Login Existing User
@@ -39,7 +30,7 @@ exports.register = asyncHandler(async (req, res, next) => {
 exports.login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
   const user = await authService.loginUser(email, password, next);
-  authenticatedToken(user, 200, res);
+  tokenService.sendAuthToken(user, 200, res);
 });
 
 // DESCRIPTION: LOGOUT USER AND CLEAR TOKEN
