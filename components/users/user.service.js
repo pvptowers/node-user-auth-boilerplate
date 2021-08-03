@@ -1,7 +1,7 @@
 const User = require("../../models/user.model");
 const asyncHandler = require("../../middleware/asyncHandler");
 
-const createUser = asyncHandler(async (data, teamId) => {
+const createUser = async (data, teamId) => {
   return User.create({
     email: data.email,
     password: data.password,
@@ -11,7 +11,7 @@ const createUser = asyncHandler(async (data, teamId) => {
     role: data.role,
     agreedTerms: data.agreedTerms,
   });
-});
+};
 
 module.exports = {
   createUser,
