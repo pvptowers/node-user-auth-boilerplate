@@ -1,16 +1,29 @@
-const asyncHandler = require("../../middleware/asyncHandler");
-const authenticatedToken = require("../../middleware/authenticatedToken");
-const authService = require("./authentication.service");
-const tokenService = require("./token.service");
-const User = require("../../models/user.model");
+//REQUIRED THIRD PARTY PACKAGES
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
+//REQUIRED MODELS
+const User = require("../../models/user.model");
+//REQUIRED MIDDLEWARE
+const asyncHandler = require("../../middleware/asyncHandler");
+const authenticatedToken = require("../../middleware/authenticatedToken");
+//REQUIRED SERVICES
+const authService = require("./authentication.service");
+const tokenService = require("./token.service");
 
 // DESCRIPTION: CREATE A NEW ACCOUNT & ROOT USER
 // ROUTE: POST /auth/create-account
 // ACCESS: Public
-exports.createAccount = asyncHandler(async (req, res, next) => {
-  const newUser = await authService.createAccount(req.body);
+exports.register = asyncHandler(async (req, res, next) => {
+  const newUser = await authService.register({
+    email: req.body.email,
+    password: req.body.password,
+    passwordConfirm: req.body.passwordConfirm,
+    role: req.body.role,
+    agreedTerms: req.body.agreedTerms,
+    teamName: req.body.teamName,
+  });
+
+  //const newUser = await authService.createAccount(req.body);
   const token = await tokenService.generateToken(newUser);
   res.status(200).send({
     data: { newUser },
@@ -72,9 +85,14 @@ exports.protect = asyncHandler(async (req, res, next) => {
   }
 
   //CHECK IF USER HAS CHANGED PASSWORD AFTER THE TOKEN WAS ISSUED
-  // if (currentUser.changedPasswordAfter(decoded.iat)) {
-  //     return next(new ErrorResponse("User recently changed password, please log in again", 401))
-  // }
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new ErrorResponse(
+        "User recently changed password, please log in again",
+        401
+      )
+    );
+  }
 
   //GRANT ACCESS TO THE PROTECTED ROUTE
   req.user = currentUser;

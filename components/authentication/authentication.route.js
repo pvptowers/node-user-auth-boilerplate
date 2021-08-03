@@ -9,14 +9,14 @@ const { validationErrors } = require("./../../utils/validationErrors");
 
 //IMPORT CONTROLLER FUNCTIONS
 const {
-  createAccount,
+  register,
 
   getAccount,
   getAllTeams,
   login,
   logout,
-  forgotPassword,
-  resetPassword,
+  // forgotPassword,
+  // resetPassword,
 } = require("./authentication.controller");
 
 //CALL EXPRESS ROUTER
@@ -27,11 +27,11 @@ router.post(
   "/create-account",
   newAccountValidation,
   validationErrors,
-  createAccount
+  register
 );
 // router.post("/add-user", newAccountValidation, validationErrors, addUser);
-router.post("/forgotpassword", forgotPassword);
-router.patch("/resetpassword/:token", resetPassword);
+// router.post("/forgotpassword", forgotPassword);
+// router.patch("/resetpassword/:token", resetPassword);
 router.post("/login", login);
 router.get("/logout", logout);
 
