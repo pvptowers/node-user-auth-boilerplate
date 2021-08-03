@@ -1,7 +1,7 @@
 //THIRD PARTY LIBRARIES
 const express = require("express");
 const {
-  newAccountValidation,
+  registrationValidation,
   // validationErrors,
 } = require("./authentication.validation");
 
@@ -23,7 +23,7 @@ const {
 const router = express.Router();
 
 //DEFINTE ROUTES
-router.post("/register", newAccountValidation, validationErrors, register);
+router.post("/register", registrationValidation, validationErrors, register);
 // router.post("/add-user", newAccountValidation, validationErrors, addUser);
 // router.post("/forgotpassword", forgotPassword);
 // router.patch("/resetpassword/:token", resetPassword);

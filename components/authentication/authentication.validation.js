@@ -1,11 +1,19 @@
-const { check, validationResult } = require("express-validator");
+const { check } = require("express-validator");
 const Team = require("../../models/team.model");
 const User = require("../../models/user.model");
-const ErrorResponse = require("../../middleware/errorResponse");
-exports.newAccountValidation = [
+
+exports.registrationValidation = [
   check("teamName")
     .notEmpty()
     .withMessage("You must provide a team name")
+    .bail(),
+  check("teamName")
+    .custom(async (teamName) => {
+      const team = await Team.findOne({ teamName });
+      if (team) {
+        return Promise.reject("A team with that name already exists");
+      }
+    })
     .bail(),
   check("email")
     .custom(async (email) => {
@@ -16,7 +24,6 @@ exports.newAccountValidation = [
     })
     .bail(),
   check("email").notEmpty().withMessage("You must provide an email").bail(),
-
   check("password")
     .notEmpty()
     .withMessage("You must provide a password")
@@ -46,12 +53,3 @@ exports.newAccountValidation = [
     })
     .bail(),
 ];
-
-// exports.validationErrors = async (req, res, next) => {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     console.log(new ErrorResponse("Validation Failure", 401, errors.array()));
-//     return next(new ErrorResponse("Validation Failure", 401, errors.array()));
-//   }
-//   return next();
-// };
