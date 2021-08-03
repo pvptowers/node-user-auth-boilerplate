@@ -9,9 +9,9 @@ const asyncHandler = require("../../middleware/asyncHandler");
 const authService = require("./authentication.service");
 const tokenService = require("./token.service");
 
-// DESCRIPTION: CREATE A NEW ACCOUNT & ROOT USER
-// ROUTE: POST /auth/create-account
-// ACCESS: Public
+// DESCRIPTION: REGISTER A NEW ACCOUNT & ROOT USER
+// ROUTE: POST /AUTH/REGISTER
+// ACCESS: PUBLIC
 exports.register = asyncHandler(async (req, res, next) => {
   const newUser = await authService.register({
     email: req.body.email,
@@ -24,9 +24,9 @@ exports.register = asyncHandler(async (req, res, next) => {
   tokenService.sendAuthToken(newUser, 200, res);
 });
 
-// DESCRIPTION: Authenticate/Login Existing User
-// ROUTE: POST /auth/login
-// ACCESS: Public
+// DESCRIPTION: LOGIN EXISTING USER
+// ROUTE: POST /AUTH/LOGIN
+// ACCESS: PUBLIC
 exports.login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
   const user = await authService.loginUser(email, password, next);

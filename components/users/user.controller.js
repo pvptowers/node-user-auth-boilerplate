@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const asyncHandler = require("../../middleware/asyncHandler");
 const User = require("../../models/user.model");
-const authenticatedToken = require("../../middleware/authenticatedToken");
 const ErrorResponse = require("../../middleware/errorResponse");
 
 exports.getUser = asyncHandler(async (req, res, next) => {

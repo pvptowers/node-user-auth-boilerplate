@@ -45,7 +45,7 @@ const secondUser = {
 };
 
 const createTeam = (team = validTeam) => {
-  return request(app).post("/auth/create-account").send(team);
+  return request(app).post("/auth/register").send(team);
 };
 
 const validUser = {
