@@ -396,6 +396,10 @@ describe("AUTH ROUTE - POST /auth/login", () => {
     it("Returns message: Please enter valid email and password if no email and password provided", async () => {
       const invalidUser = {};
       const response = await loginUser(invalidUser);
+      // expect(response.body.validationErrors.email).toBe(
+      //   "Please enter valid email and password"
+      // );
+
       expect(response.body.message).toBe(
         "Please enter valid email and password"
       );

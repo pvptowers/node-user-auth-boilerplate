@@ -1,11 +1,7 @@
-//REQUIRED THIRD PARTY PACKAGES
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
-//REQUIRED MODELS
 const User = require("../../models/user.model");
-//REQUIRED MIDDLEWARE
 const asyncHandler = require("../../middleware/asyncHandler");
-//REQUIRED SERVICES
 const authService = require("./authentication.service");
 const tokenService = require("./token.service");
 
@@ -29,7 +25,7 @@ exports.register = asyncHandler(async (req, res, next) => {
 // ACCESS: PUBLIC
 exports.login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
-  const user = await authService.loginUser(email, password, next);
+  const user = await authService.login(email, password);
   tokenService.sendAuthToken(user, 200, res);
 });
 

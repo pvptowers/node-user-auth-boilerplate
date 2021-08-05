@@ -1,6 +1,6 @@
 const User = require("../../models/user.model");
 const asyncHandler = require("../../middleware/asyncHandler");
-
+const ErrorResponse = require("../../middleware/errorResponse");
 const createUser = async (data, teamId) => {
   return User.create({
     email: data.email,
@@ -13,6 +13,15 @@ const createUser = async (data, teamId) => {
   });
 };
 
+const findUserByEmail = async (email) => {
+  const user = await User.findOne({ email }).select("+password");
+  if (!user) {
+    throw new ErrorResponse("Please enter valid email and password", 401);
+  }
+  return user;
+};
+
 module.exports = {
   createUser,
+  findUserByEmail,
 };
