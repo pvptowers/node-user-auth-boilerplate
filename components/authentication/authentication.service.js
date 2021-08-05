@@ -1,6 +1,4 @@
-const asyncHandler = require("../../middleware/asyncHandler");
 const ErrorResponse = require("../../middleware/errorResponse");
-const User = require("../../models/user.model");
 const teamService = require("../teams/team.service");
 const userService = require("../users/user.service");
 
@@ -25,15 +23,7 @@ const login = async (email, password) => {
   return user;
 };
 
-const logoutUser = asyncHandler(async () => {
-  res.cookie("token", "none", {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true,
-  });
-});
-
 module.exports = {
   register,
   login,
-  logoutUser,
 };

@@ -53,6 +53,7 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
 });
@@ -91,6 +92,20 @@ userSchema.methods.getAuthJwtToken = function () {
       expiresIn: process.env.JWT_EXPIRE,
     }
   );
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+
+    return JWTTimestamp < changedTimestamp;
+  }
+
+  //False means not changed
+  return false;
 };
 
 userSchema.methods.createPasswordResetToken = function () {

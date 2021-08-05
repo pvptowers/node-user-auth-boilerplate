@@ -1,5 +1,5 @@
 const express = require("express");
-const { protect } = require("../authentication/authentication.controller");
+const { protect } = require("../../middleware/authentication.middleware");
 const {
   getTeam,
   addUser,

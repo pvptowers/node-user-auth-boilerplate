@@ -65,7 +65,7 @@ const logoutUser = () => {
 //   return request(app).post("/auth/add-user").send(newUser);
 // };
 
-describe("AUTH ROUTE - POST /auth/create-account", () => {
+describe("AUTH ROUTE - POST /auth/register", () => {
   describe("Account creation succeeds", () => {
     it("Returns 200 status code when account creation process is successful", async () => {
       const response = await createTeam();
@@ -435,7 +435,7 @@ describe("AUTH ROUTE - POST /auth/login", () => {
   });
 });
 
-describe("AUTH ROUTE - POST /auth/logout", () => {
+describe("AUTH ROUTE - GET /auth/logout", () => {
   describe("User Logout Succeeds", () => {
     it("Returns 200 status code when user logs out successfully", async () => {
       await loginUser();
@@ -458,50 +458,5 @@ describe("AUTH ROUTE - POST /auth/logout", () => {
       const response = await logoutUser();
       expect(response.body.token).toBeFalsy();
     });
-  });
-});
-
-// describe("Auth POST /adduser", () => {
-//   it("Returns 200 status code when user created successfully", async () => {
-//     const response = await createTeam();
-//     console.log(response.body);
-//     const teamNum = response.body.data.team;
-
-//     const userToAdd = { ...secondUser, teamId: teamNum };
-
-//     const response2 = await addNewUser(userToAdd);
-
-//     expect(response2.status).toBe(200);
-//     expect(response2.body.data.team).toBe(teamNum);
-//   });
-// });
-
-// describe("AUTH PATCH /update-password", () => {
-//   it("Should return 200 when password updated successfully", () => {
-//   })
-// })
-
-describe("Auth POST /forgot-password", () => {
-  it("Returns status 200", async () => {
-    const team = await createTeam();
-    const user = await loginUser(validUser);
-    const userEmail = user.body.data.email;
-    // const resetToken = await authService.passwordResetToken(userEmail);
-    // const urlProtocol = "http";
-    // const urlHost = "localhost:5000";
-    // await authService.forgotPasswordRequest(
-    //   urlProtocol,
-    //   urlHost,
-    //   resetToken,
-    //   userEmail
-    // );
-
-    console.log(user.body.data.email);
-    const response = await request(app)
-      .post("/auth/forgotpassword")
-      .send(userEmail);
-
-    console.log(response.body);
-    expect(response.status).toBe(200);
   });
 });
