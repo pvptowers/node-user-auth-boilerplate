@@ -28,13 +28,8 @@ const updateTeam = async (changes, team) => {
   }
 };
 
-// const updateTeam = async ({updatedTeamDetails}) => {
-//  const {teamName} = updatedTeamDetails;
-//  if (!teamName) {
-//    throw new ErrorResponse("You need to provide a teamName")
-//  } else {
+const deleteTeam = async (id) => {
+  await Team.deleteOne({ _id: id });
+};
 
-//  }
-// }
-
-module.exports = { createTeam, getTeamById, updateTeam };
+module.exports = { createTeam, getTeamById, updateTeam, deleteTeam };

@@ -46,9 +46,11 @@ exports.updateTeam = asyncHandler(async (req, res, next) => {
   });
 });
 
+// DESCRIPTION: REQUEST TO DELETE A TEAM
+// ROUTE:       PUT /AUTH/DELETE-TEAM/:_ID
+// ACCESS:      PRIVATE
 exports.deleteTeam = asyncHandler(async (req, res, next) => {
-  const team = await Team.deleteOne({ _id: req.params._id });
-
+  const team = await teamService.deleteTeam(req.params._id);
   res.status(200).json({ status: "success", data: null });
 });
 

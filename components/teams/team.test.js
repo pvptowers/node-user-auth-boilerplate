@@ -54,9 +54,11 @@ const getTeam = (teamId, token) => {
     .set("Authorization", `Bearer ${token}`);
 };
 
-const deleteATeam = (teamId) => {
+const deleteATeam = (teamId, token) => {
   const theTeam = teamId;
-  return request(app).delete(`/auth/delete-team/${theTeam}`);
+  return request(app)
+    .delete(`/auth/delete-team/${theTeam}`)
+    .set("Authorization", `Bearer ${token}`);
 };
 
 const addNewUser = (newUser, token) => {
@@ -195,11 +197,12 @@ describe("UPDATE TEAM", () => {
   });
 });
 
-// describe("Delete Team", () => {
-//   it("Should return 200", async () => {
-//     const response = await createTeam();
-//     const Id = response.body.data.team;
-//     const deleteTheTeam = await deleteATeam(Id);
-//     expect(deleteTheTeam.status).toBe(200);
-//   });
-// });
+describe("Delete Team", () => {
+  it("Should return 200", async () => {
+    const response = await createTeam();
+    const id = response.body.data.team;
+    const token = response.body.token;
+    const deleteTheTeam = await deleteATeam(id, token);
+    expect(deleteTheTeam.status).toBe(200);
+  });
+});
