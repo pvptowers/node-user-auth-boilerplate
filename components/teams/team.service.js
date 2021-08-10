@@ -18,6 +18,16 @@ const getTeamById = async (teamId) => {
   return team;
 };
 
+const updateTeam = async (changes, team) => {
+  if (!changes.teamName) {
+    throw new ErrorResponse("You need to provide a teamName");
+  } else {
+    team.teamName = changes.teamName;
+    const updatedTeam = await team.save();
+    return updatedTeam;
+  }
+};
+
 // const updateTeam = async ({updatedTeamDetails}) => {
 //  const {teamName} = updatedTeamDetails;
 //  if (!teamName) {
@@ -27,4 +37,4 @@ const getTeamById = async (teamId) => {
 //  }
 // }
 
-module.exports = { createTeam, getTeamById };
+module.exports = { createTeam, getTeamById, updateTeam };

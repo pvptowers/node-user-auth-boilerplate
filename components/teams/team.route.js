@@ -9,8 +9,8 @@ const {
 const router = express.Router();
 
 router.get(`/get-team/:_id`, protect, getTeam);
-router.put(`/update-team/:_id`, updateTeam);
+router.put(`/update-team/:_id`, protect, updateTeam);
 router.delete(`/delete-team/:_id`, deleteTeam);
-router.post("/add-user", addUser);
+router.post("/add-user", protect, addUser);
 
 module.exports = router;

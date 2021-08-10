@@ -45,12 +45,13 @@ const secondUser = {
 };
 
 const createTeam = (team = validTeam) => {
-  return request(app).post("/auth/create-account").send(team);
+  return request(app).post("/auth/register").send(team);
 };
 
-const getTeam = (teamId) => {
-  const theTeam = teamId;
-  return request(app).get(`/auth/get-team/${theTeam}`);
+const getTeam = (teamId, token) => {
+  return request(app)
+    .get(`/auth/get-team/${teamId}`)
+    .set("Authorization", `Bearer ${token}`);
 };
 
 const deleteATeam = (teamId) => {
@@ -58,53 +59,62 @@ const deleteATeam = (teamId) => {
   return request(app).delete(`/auth/delete-team/${theTeam}`);
 };
 
-const addNewUser = (newUser) => {
-  return request(app).post("/auth/add-user").send(newUser);
+const addNewUser = (newUser, token) => {
+  return request(app)
+    .post("/auth/add-user")
+    .send(newUser)
+    .set("Authorization", `Bearer ${token}`);
 };
 
-const updateTheTeam = (updatedTeamDetails, teamId) => {
+const updateTheTeam = (updatedTeamDetails, teamId, token) => {
   return request(app)
     .put(`/auth/update-team/${teamId}`)
-    .send(updatedTeamDetails);
+    .send(updatedTeamDetails)
+    .set("Authorization", `Bearer ${token}`);
 };
 
 describe("TEAM ROUTE - GET /team/get-team", () => {
   describe("Get Team Succeeds", () => {
     it("Should return 200 status code when get request succeeds", async () => {
       const createTeamResponse = await createTeam();
-      const id = createTeamResponse.body.data.newUser.team;
-      console.log(createTeamResponse.body);
-      console.log("THE TEAM ID", id);
-      const response = await getTeam(id);
+      const token = createTeamResponse.body.token;
+
+      const id = createTeamResponse.body.data.team;
+      const response = await getTeam(id, token);
       expect(response.status).toBe(200);
     });
 
     it("Should return team ID in response body when get request is successful", async () => {
       const createTeamResponse = await createTeam();
-      const id = createTeamResponse.body.data.newUser.team;
-      const response = await getTeam(id);
+      const token = createTeamResponse.body.token;
+      const id = createTeamResponse.body.data.team;
+      const response = await getTeam(id, token);
       expect(response.body.data._id).toBe(id);
     });
 
     it("Should return ID of users in response body when get request is successful", async () => {
       const createTeamResponse = await createTeam();
-      const id = createTeamResponse.body.data.newUser.team;
-      const response = await getTeam(id);
+      const token = createTeamResponse.body.token;
+      const id = createTeamResponse.body.data.team;
+      const response = await getTeam(id, token);
       expect(response.body.data.users).toBeTruthy();
     });
 
     it("Should return team name in response body when get request is successful", async () => {
       const createTeamResponse = await createTeam();
-      const id = createTeamResponse.body.data.newUser.team;
-      const response = await getTeam(id);
+      const token = createTeamResponse.body.token;
+      const id = createTeamResponse.body.data.team;
+      const response = await getTeam(id, token);
       expect(response.body.data.teamName).toBe(validTeam.teamName);
     });
   });
 
   describe("Get team fails", () => {
     it("Should return 404 when when team ID is invalid", async () => {
+      const createTeamResponse = await createTeam();
+      const token = createTeamResponse.body.token;
       const incorrectId = "60ed6b63ae65868cb03dda6a";
-      const response = await getTeam(incorrectId);
+      const response = await getTeam(incorrectId, token);
       expect(response.status).toBe(404);
     });
 
@@ -117,17 +127,19 @@ describe("TEAM ROUTE POST /team/addUser", () => {
   describe("Add User To Team Succeeds", () => {
     it("Returns 200 status code when user successfully added to team", async () => {
       const teamResponse = await createTeam();
-      const teamId = teamResponse.body.data.newUser.team;
+      const teamId = teamResponse.body.data.team;
+      const token = teamResponse.body.token;
       const newUserToAdd = { ...secondUser, teamId: teamId };
-      const response = await addNewUser(newUserToAdd);
+      const response = await addNewUser(newUserToAdd, token);
       expect(response.status).toBe(200);
     });
 
     it("Saves the new user to the database", async () => {
       const teamResponse = await createTeam();
-      const teamId = teamResponse.body.data.newUser.team;
+      const teamId = teamResponse.body.data.team;
+      const token = teamResponse.body.token;
       const newUserToAdd = { ...secondUser, teamId: teamId };
-      const response = await addNewUser(newUserToAdd);
+      const response = await addNewUser(newUserToAdd, token);
       const newUserId = response.body.data._id;
       const team = await Team.findById(teamId);
       expect(team.users[1].toString()).toEqual(newUserId.toString());
@@ -135,9 +147,10 @@ describe("TEAM ROUTE POST /team/addUser", () => {
 
     it("Saves the users email in the database", async () => {
       const teamResponse = await createTeam();
-      const teamId = teamResponse.body.data.newUser.team;
+      const token = teamResponse.body.token;
+      const teamId = teamResponse.body.data.team;
       const newUserToAdd = { ...secondUser, teamId: teamId };
-      const response = await addNewUser(newUserToAdd);
+      const response = await addNewUser(newUserToAdd, token);
       const newUserId = response.body.data._id;
       const findUser = await User.findById(newUserId);
       expect(findUser.email).toBe(secondUser.email);
@@ -145,23 +158,26 @@ describe("TEAM ROUTE POST /team/addUser", () => {
 
     it("Returns user token in response body when creating a new user is successful", async () => {
       const teamResponse = await createTeam();
-      const teamId = teamResponse.body.data.newUser.team;
+      const token = teamResponse.body.token;
+      const teamId = teamResponse.body.data.team;
       const newUserToAdd = { ...secondUser, teamId: teamId };
-      const response = await addNewUser(newUserToAdd);
+      const response = await addNewUser(newUserToAdd, token);
       expect(response.body.token).toBeTruthy();
     });
 
     describe("Adding new user fails - Missing Inputs", () => {
       it("Returns 401 when teamId is not provided", async () => {
         const teamResponse = await createTeam();
+        const token = teamResponse.body.token;
         const newUserToAdd = { ...secondUser, teamId: "" };
-        const response = await addNewUser(newUserToAdd);
+        const response = await addNewUser(newUserToAdd, token);
         expect(response.status).toBe(401);
       });
       it("Returns 401 when email is not provided", async () => {
         const teamResponse = await createTeam();
+        const token = teamResponse.body.token;
         const newUserToAdd = { ...secondUser, email: "" };
-        const response = await addNewUser(newUserToAdd);
+        const response = await addNewUser(newUserToAdd, token);
         expect(response.status).toBe(401);
       });
     });
@@ -171,9 +187,10 @@ describe("TEAM ROUTE POST /team/addUser", () => {
 describe("UPDATE TEAM", () => {
   it("Should return 200", async () => {
     const newTeam = await createTeam();
-    const id = newTeam.body.data.newUser.team;
+    const id = newTeam.body.data.team;
+    const token = newTeam.body.token;
     const newTeamName = "ChangedTeam";
-    const response = await updateTheTeam({ teamName: newTeamName }, id);
+    const response = await updateTheTeam({ teamName: newTeamName }, id, token);
     expect(response.status).toBe(200);
   });
 });
