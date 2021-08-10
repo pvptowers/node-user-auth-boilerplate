@@ -26,7 +26,6 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 // ROUTE:       PATCH /AUTH/RESETPASSWORD
 // ACCESS:      PUBLIC
 exports.resetPassword = asyncHandler(async (req, res, next) => {
-  console.log("BODY", req.params.token);
   const user = await passwordResetService.resetPassword(
     req.params.token,
     req.body.password,
