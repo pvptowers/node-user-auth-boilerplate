@@ -1,6 +1,16 @@
 const User = require("../../models/user.model");
-const asyncHandler = require("../../middleware/asyncHandler");
 const ErrorResponse = require("../../middleware/errorResponse");
+
+const getUserById = async (id) => {
+  const user = await User.findById(id);
+  return user;
+};
+
+const deleteUser = async (id) => {
+  const user = await User.findByIdAndRemove(id);
+  if (!user) throw new ErrorResponse("No user exists with that id", 404);
+};
+
 const createUser = async (data, teamId) => {
   return User.create({
     email: data.email,
@@ -22,6 +32,8 @@ const findUserByEmail = async (email) => {
 };
 
 module.exports = {
+  getUserById,
+  deleteUser,
   createUser,
   findUserByEmail,
 };

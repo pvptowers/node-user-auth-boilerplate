@@ -1,10 +1,10 @@
-const mongoose = require("mongoose");
 const asyncHandler = require("../../middleware/asyncHandler");
 const User = require("../../models/user.model");
 const ErrorResponse = require("../../middleware/errorResponse");
+const userService = require("./user.service");
 
 exports.getUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.params._id);
+  const user = await userService.getUserById(req.params._id);
   res.status(200).json({
     success: true,
     data: user,
@@ -12,10 +12,7 @@ exports.getUser = asyncHandler(async (req, res, next) => {
 });
 
 exports.deleteUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findByIdAndRemove(req.params._id);
-  if (!user) {
-    return next(new ErrorResponse("No user exists with that id", 404));
-  }
+  await userService.deleteUser(req.params._id);
   res.status(200).json({
     success: true,
     data: null,
