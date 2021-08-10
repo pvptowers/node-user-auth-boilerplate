@@ -61,6 +61,8 @@ const user = require("./components/users/user.route");
 app.use("/auth/", user);
 const team = require("./components/teams/team.route");
 app.use("/auth/", team);
+const password = require("./components/password-reset/passwordReset.route");
+app.use("/auth/", password);
 
 //CATCH UNDEFINED URLS
 app.all("*", (req, res, next) => {

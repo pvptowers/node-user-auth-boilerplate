@@ -1,13 +1,15 @@
 const asyncHandler = require("../../middleware/asyncHandler");
-const authenticatedToken = require("../../middleware/authenticatedToken");
-const authService = require("./authentication.service");
+const authMiddleware = require("../../middleware/authentication.middleware");
+const passwordResetService = require("./passwordReset.service");
 
 // DESCRIPTION: REQUEST FOR FORGOTTEN USER PASSWORD
-// ROUTE: POST /auth/forgot-password
-// ACCESS: Public
+// ROUTE:       POST /AUTH/FORGOT-PASSWORD
+// ACCESS:      PUBLIC
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
-  const resetToken = await authService.passwordResetToken(req.body.email);
-  await authService.forgotPasswordRequest(
+  const resetToken = await passwordResetService.passwordResetToken(
+    req.body.email
+  );
+  await passwordResetService.forgotPasswordRequest(
     req.protocol,
     req.get("host"),
     resetToken,
@@ -20,11 +22,15 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   });
 });
 
+// DESCRIPTION: RESET USER PASSWORD
+// ROUTE:       PATCH /AUTH/RESETPASSWORD
+// ACCESS:      PUBLIC
 exports.resetPassword = asyncHandler(async (req, res, next) => {
-  const user = await authService.resetPassword(
+  console.log("BODY", req.params.token);
+  const user = await passwordResetService.resetPassword(
     req.params.token,
     req.body.password,
     req.body.passwordConfirm
   );
-  authenticatedToken(user, 200, res);
+  authMiddleware.sendAuthToken("reset", user, 200, res);
 });
