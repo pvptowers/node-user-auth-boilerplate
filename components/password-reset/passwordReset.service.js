@@ -1,12 +1,8 @@
 const asyncHandler = require("../../middleware/asyncHandler");
 const ErrorResponse = require("../../middleware/errorResponse");
-const mongoose = require("mongoose");
 const User = require("../../models/user.model");
-const Team = require("../../models/team.model");
 const sendEmail = require("../../utils/email");
 const crypto = require("crypto");
-
-const teamService = require("../teams/team.service");
 const userService = require("../users/user.service");
 
 const passwordResetToken = async (email) => {
@@ -24,7 +20,6 @@ const forgotPasswordRequest = async (
 ) => {
   const resetURL = `${urlProtocol}://${urlHost}/auth/resetPassword/${resetToken}}`;
   const message = `Forgot your password? Submit a patch request with your new password and passwordConfirm to: ${resetURL}. \n If you didn't forget your password, please ignore this email!`;
-
   try {
     await sendEmail({
       email: userEmail,
@@ -50,7 +45,6 @@ const resetPassword = asyncHandler(
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() },
     });
-    //If token has not expired and there is a user, set the new password
     if (!user) {
       throw new ErrorResponse("Token is invalid or has expired", 400);
     }
