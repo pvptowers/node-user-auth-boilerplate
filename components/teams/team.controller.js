@@ -6,7 +6,6 @@ const User = require("../../models/user.model");
 const authMiddleware = require("../../middleware/authentication.middleware");
 const teamService = require("./team.service");
 const userService = require("../users/user.service");
-const tokenService = require("../authentication/token.service");
 
 // DESCRIPTION: REQUEST FOR CURRENT TEAM DATA
 // ROUTE:       GET /AUTH/GET-TEAM
