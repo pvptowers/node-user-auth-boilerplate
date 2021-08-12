@@ -10,5 +10,8 @@
     "globals": {
         "rating": "5 star",
         "thoughts": "The course precise and detailed"
-    }
+    },
+    "setupFiles": [
+        "helpers.js"
+    ]
 }

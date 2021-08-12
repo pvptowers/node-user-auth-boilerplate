@@ -78,7 +78,7 @@ const updateTheTeam = (updatedTeamDetails, teamId, token) => {
 describe("TEAM ROUTE - GET /team/get-team", () => {
   describe("Get Team Succeeds", () => {
     it("Should return 200 status code when get request succeeds", async () => {
-      const createTeamResponse = await createTeam();
+      const createTeamResponse = await createTeamTest(validTeam);
       const token = createTeamResponse.body.token;
 
       const id = createTeamResponse.body.data.team;
@@ -87,7 +87,7 @@ describe("TEAM ROUTE - GET /team/get-team", () => {
     });
 
     it("Should return team ID in response body when get request is successful", async () => {
-      const createTeamResponse = await createTeam();
+      const createTeamResponse = await createTeamTest(validTeam);
       const token = createTeamResponse.body.token;
       const id = createTeamResponse.body.data.team;
       const response = await getTeam(id, token);
