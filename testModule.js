@@ -9,6 +9,14 @@ global.registerTeamTestUtil = (team) => {
   return request(app).post("/auth/register").send(team);
 };
 
+global.loginUserTestUtil = (user) => {
+  return request(app).post("/auth/login").send(user);
+};
+
+global.logoutUserTestUtil = () => {
+  return request(app).get("/auth/logout");
+};
+
 global.getTeamByIdTestUtil = (id, token) => {
   return request(app)
     .get(`/auth/get-team/${id}`)
