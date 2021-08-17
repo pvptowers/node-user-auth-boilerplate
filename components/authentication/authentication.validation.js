@@ -4,6 +4,7 @@ const User = require("../../models/user.model");
 
 exports.registrationValidation = [
   check("teamName")
+    .trim()
     .notEmpty()
     .withMessage("You must provide a team name")
     .bail(),
@@ -16,6 +17,7 @@ exports.registrationValidation = [
     })
     .bail(),
   check("email")
+    .trim()
     .custom(async (email) => {
       const user = await User.findOne({ email });
       if (user) {
@@ -23,8 +25,13 @@ exports.registrationValidation = [
       }
     })
     .bail(),
-  check("email").notEmpty().withMessage("You must provide an email").bail(),
+  check("email")
+    .trim()
+    .notEmpty()
+    .withMessage("You must provide an email")
+    .bail(),
   check("password")
+    .trim()
     .notEmpty()
     .withMessage("You must provide a password")
     .bail()
@@ -36,6 +43,7 @@ exports.registrationValidation = [
       "Password have at least 1 uppercase, 1 lowercase and 1 letter"
     ),
   check("passwordConfirm")
+    .trim()
     .custom(async (passwordConfirm, { req }) => {
       const password = req.body.password;
       if (password !== passwordConfirm) {

@@ -32,26 +32,13 @@ const validTeam = {
   agreedTerms: true,
 };
 
-const secondUser = {
-  email: "test2@test.com",
-  password: "P4ssword",
-  passwordConfirm: "P4ssword",
-  // teamName: "testteam",
-  role: "guestUser",
-  agreedTerms: true,
-};
-
 const validUser = {
   email: "test@test.com",
   password: "P4ssword",
 };
 
-// const addNewUser = (newUser) => {
-//   return request(app).post("/auth/add-user").send(newUser);
-// };
-
 describe("AUTH ROUTE - POST /auth/register", () => {
-  describe("Account creation succeeds", () => {
+  describe("Overall Account creation succeeds", () => {
     it("Returns 200 status code when account creation process is successful", async () => {
       const response = await registerTeamTestUtil(validTeam);
       expect(response.status).toBe(200);
@@ -61,7 +48,8 @@ describe("AUTH ROUTE - POST /auth/register", () => {
       const response = await registerTeamTestUtil(validTeam);
       expect(response.body.message).toBe("Account created successfully");
     });
-
+  });
+  describe("Account creation succeeds and saves team", () => {
     it("Saves the team to the database", async () => {
       await registerTeamTestUtil(validTeam);
       const team = await Team.find();
@@ -74,7 +62,8 @@ describe("AUTH ROUTE - POST /auth/register", () => {
       const savedTeam = teamList[0];
       expect(savedTeam.teamName).toBe(validTeam.teamName);
     });
-
+  });
+  describe("Account creation succeeds and saves root user", () => {
     it("Saves the root user to the database", async () => {
       await registerTeamTestUtil(validTeam);
       const teamList = await Team.find();
@@ -92,6 +81,14 @@ describe("AUTH ROUTE - POST /auth/register", () => {
       expect(findUser[0].team[0]).toBe(validTeam._id);
     });
 
+    it("Ensures first users role is rootUser", async () => {
+      await registerTeamTestUtil(validTeam);
+      const teamList = await Team.find();
+      const savedUser = await teamList[0].users[0];
+      const findUser = await User.find(savedUser);
+      expect(findUser[0].role).toBe(validTeam.role);
+    });
+
     it("Returns user token in response body when account creation is successful", async () => {
       const response = await registerTeamTestUtil(validTeam);
       expect(response.body.token).toBeTruthy();
@@ -99,99 +96,121 @@ describe("AUTH ROUTE - POST /auth/register", () => {
   });
 
   describe("Account Creation Fails - Missing Inputs", () => {
-    it("Returns 401 when teamname is null", async () => {
-      const newTeam = { ...validTeam, teamName: null };
-      const response = await registerTeamTestUtil(newTeam);
-      expect(response.status).toBe(401);
-    });
+    describe("Account Creation Fails due to missing team data", () => {
+      it("Returns 401 when teamname is null", async () => {
+        const newTeam = { ...validTeam, teamName: null };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.status).toBe(401);
+      });
 
-    it("Returns 401 when email is null", async () => {
-      const newTeam = { ...validTeam, email: null };
-      const response = await registerTeamTestUtil(newTeam);
-      expect(response.status).toBe(401);
-    });
+      it("Returns 401 when teamname is undefined", async () => {
+        const newTeam = { ...validTeam, teamName: undefined };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.status).toBe(401);
+      });
 
-    it("Returns 401 when password is null", async () => {
-      const newTeam = { ...validTeam, password: null };
-      const response = await registerTeamTestUtil(newTeam);
-      expect(response.status).toBe(401);
-    });
+      it("Returns 401 when teamname is an empty string", async () => {
+        const newTeam = { ...validTeam, teamName: " " };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.status).toBe(401);
+      });
 
-    it("Returns 401 when agreedTerms is false", async () => {
-      const newTeam = {
-        ...validTeam,
-        agreedTerms: false,
-      };
-      const response = await registerTeamTestUtil(newTeam);
-      expect(response.status).toBe(401);
-    });
-
-    it("Ensures the user has agreed terms before saving team and user to database", async () => {
-      await registerTeamTestUtil(validTeam);
-      const teamList = await Team.find();
-      const savedUser = await teamList[0].users[0];
-      const findUser = await User.find(savedUser);
-      expect(findUser[0].agreedTerms).toBe(true);
-      expect(findUser[0].team[0]).toBe(validTeam._id);
-    });
-
-    it("Returns message: You need to agree to the terms to create an account", async () => {
-      const newTeam = {
-        ...validTeam,
-        agreedTerms: false,
-      };
-      const response = await registerTeamTestUtil(newTeam);
-      expect(response.body).toMatchObject({
-        error: {
-          errors: [
-            {
-              msg: "You need to agree to the terms to create an account",
-            },
-          ],
-        },
+      it("Returns message: You must provide a team name when the team name is not provided", async () => {
+        const newTeam = { ...validTeam, teamName: null };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.body).toMatchObject({
+          error: {
+            errors: [
+              {
+                msg: "You must provide a team name",
+              },
+            ],
+          },
+        });
       });
     });
+    describe("Account Creation Fails due to missing user data", () => {
+      it("Returns 401 when email is null", async () => {
+        const newTeam = { ...validTeam, email: null };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.status).toBe(401);
+      });
 
-    it("Returns message: You must provide a team name when the team name is not provided", async () => {
-      const newTeam = { ...validTeam, teamName: null };
-      const response = await registerTeamTestUtil(newTeam);
-      expect(response.body).toMatchObject({
-        error: {
-          errors: [
-            {
-              msg: "You must provide a team name",
-            },
-          ],
-        },
+      it("Returns 401 when email is undefined", async () => {
+        const newTeam = { ...validTeam, email: undefined };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.status).toBe(401);
+      });
+
+      it("Returns 401 when email is an empty string", async () => {
+        const newTeam = { ...validTeam, email: " " };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.status).toBe(401);
+      });
+
+      it("Returns 401 when password is null", async () => {
+        const newTeam = { ...validTeam, password: null };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.status).toBe(401);
+      });
+
+      it("Returns 401 when password is undefined", async () => {
+        const newTeam = { ...validTeam, password: undefined };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.status).toBe(401);
+      });
+
+      it("Returns 401 when password is an empty string", async () => {
+        const newTeam = { ...validTeam, password: " " };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.status).toBe(401);
+      });
+
+      it("Returns 401 when agreedTerms is false", async () => {
+        const newTeam = {
+          ...validTeam,
+          agreedTerms: false,
+        };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.status).toBe(401);
+      });
+
+      it("Returns message: A user with this email already exists", async () => {
+        const user1 = {
+          ...validTeam,
+        };
+        const user2 = {
+          ...validTeam,
+          teamName: "testTeam2",
+        };
+        await registerTeamTestUtil(user1);
+        const response = await registerTeamTestUtil(user2);
+        expect(response.body.validationErrors.email).toBe(
+          "A user with this email already exists"
+        );
       });
     });
+    describe("Account Creation Fails due to lack of agreed terms", () => {
+      it("Ensures the user has agreed terms before saving team and user to database", async () => {
+        await registerTeamTestUtil(validTeam);
+        const teamList = await Team.find();
+        const savedUser = await teamList[0].users[0];
+        const findUser = await User.find(savedUser);
+        expect(findUser[0].agreedTerms).toBe(true);
+        expect(findUser[0].team[0]).toBe(validTeam._id);
+      });
 
-    it("Returns message: You need to agree to the terms to create an account", async () => {
-      const newTeam = { ...validTeam, agreedTerms: false };
-      const response = await registerTeamTestUtil(newTeam);
-      expect(response.body.validationErrors.agreedTerms).toBe(
-        "You need to agree to the terms to create an account"
-      );
-    });
-
-    it("Returns message: A user with this email already exists", async () => {
-      const user1 = {
-        ...validTeam,
-      };
-      const user2 = {
-        ...validTeam,
-        teamName: "testTeam2",
-      };
-
-      await registerTeamTestUtil(user1);
-      const response = await registerTeamTestUtil(user2);
-      expect(response.body.validationErrors.email).toBe(
-        "A user with this email already exists"
-      );
+      it("Returns message: You need to agree to the terms to create an account", async () => {
+        const newTeam = { ...validTeam, agreedTerms: false };
+        const response = await registerTeamTestUtil(newTeam);
+        expect(response.body.validationErrors.agreedTerms).toBe(
+          "You need to agree to the terms to create an account"
+        );
+      });
     });
   });
 
-  describe("Account Creation Fails - Password Validation", () => {
+  describe("Account Creation - Password Validation", () => {
     it("Hashes the users password in the database", async () => {
       await registerTeamTestUtil(validTeam);
       const teamList = await Team.find();
@@ -235,7 +254,7 @@ describe("AUTH ROUTE - POST /auth/register", () => {
       expect(response.status).toBe(401);
     });
 
-    it("Returns message: Passwords do not match", async () => {
+    it("Returns message: Passwords do not match, when password and passwordConfirm do not match", async () => {
       const newTeam = {
         ...validTeam,
         passwordConfirm: "ThispasswordDoesnt4Match",
@@ -347,6 +366,13 @@ describe("AUTH ROUTE - POST /auth/login", () => {
       expect(response.status).toBe(401);
     });
 
+    it("Returns 401 status code if user email is an empty string", async () => {
+      await registerTeamTestUtil(validTeam);
+      const invalidUser = { ...validUser, email: " " };
+      const response = await loginUserTestUtil(invalidUser);
+      expect(response.status).toBe(401);
+    });
+
     it("Returns 401 status code if user email password is null", async () => {
       await registerTeamTestUtil(validTeam);
       const invalidUser = { ...validUser, password: null };
@@ -388,25 +414,9 @@ describe("AUTH ROUTE - POST /auth/login", () => {
       await registerTeamTestUtil(validTeam);
       const invalidUser = {};
       const response = await loginUserTestUtil(invalidUser);
-      // expect(response.body.validationErrors.email).toBe(
-      //   "Please enter valid email and password"
-      // );
-
       expect(response.body.message).toBe(
         "Please enter valid email and password"
       );
-      // expect(response.body).toMatchObject({
-      //   error: {
-      //     errors: [
-      //       {
-      //         msg: "Please enter valid email and password",
-      //       },
-      //     ],
-      //     isOperations: true,
-      //     statusCode: 401,
-      //     statusState: "fail",
-      //   },
-      // });
     });
 
     it("Returns message: Please enter valid email and password if email is incorrect", async () => {
