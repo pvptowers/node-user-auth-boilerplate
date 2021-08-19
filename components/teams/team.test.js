@@ -44,33 +44,6 @@ const secondUser = {
   agreedTerms: true,
 };
 
-const getTeam = (teamId, token) => {
-  return request(app)
-    .get(`/auth/get-team/${teamId}`)
-    .set("Authorization", `Bearer ${token}`);
-};
-
-const deleteATeam = (teamId, token) => {
-  const theTeam = teamId;
-  return request(app)
-    .delete(`/auth/delete-team/${theTeam}`)
-    .set("Authorization", `Bearer ${token}`);
-};
-
-const addNewUser = (newUser, token) => {
-  return request(app)
-    .post("/auth/add-user")
-    .send(newUser)
-    .set("Authorization", `Bearer ${token}`);
-};
-
-const updateTheTeam = (updatedTeamDetails, teamId, token) => {
-  return request(app)
-    .put(`/auth/update-team/${teamId}`)
-    .send(updatedTeamDetails)
-    .set("Authorization", `Bearer ${token}`);
-};
-
 describe("TEAM ROUTE - GET /team/get-team", () => {
   describe("GET request for Team Succeeds", () => {
     it("Should return 200 status code when get request succeeds", async () => {
@@ -170,7 +143,7 @@ describe("TEAM ROUTE POST /team/addUser", () => {
       const token = teamResponse.body.token;
       const teamId = teamResponse.body.data.team;
       const newUserToAdd = { ...secondUser, teamId: teamId };
-      const response = await addNewUser(newUserToAdd, token);
+      const response = await addNewUserTestUtil(newUserToAdd, token);
       const newUserId = response.body.data._id;
       const findUser = await User.findById(newUserId);
       expect(findUser.email).toBe(secondUser.email);
@@ -181,7 +154,7 @@ describe("TEAM ROUTE POST /team/addUser", () => {
       const token = teamResponse.body.token;
       const teamId = teamResponse.body.data.team;
       const newUserToAdd = { ...secondUser, teamId: teamId };
-      const response = await addNewUser(newUserToAdd, token);
+      const response = await addNewUserTestUtil(newUserToAdd, token);
       expect(response.body.token).toBeTruthy();
     });
 
@@ -190,14 +163,14 @@ describe("TEAM ROUTE POST /team/addUser", () => {
         const teamResponse = await registerTeamTestUtil(validTeam);
         const token = teamResponse.body.token;
         const newUserToAdd = { ...secondUser, teamId: "" };
-        const response = await addNewUser(newUserToAdd, token);
+        const response = await addNewUserTestUtil(newUserToAdd, token);
         expect(response.status).toBe(401);
       });
       it("Returns 401 when email is not provided", async () => {
         const teamResponse = await registerTeamTestUtil(validTeam);
         const token = teamResponse.body.token;
         const newUserToAdd = { ...secondUser, email: "" };
-        const response = await addNewUser(newUserToAdd, token);
+        const response = await addNewUserTestUtil(newUserToAdd, token);
         expect(response.status).toBe(401);
       });
     });
@@ -210,7 +183,11 @@ describe("UPDATE TEAM", () => {
     const id = newTeam.body.data.team;
     const token = newTeam.body.token;
     const newTeamName = "ChangedTeam";
-    const response = await updateTheTeam({ teamName: newTeamName }, id, token);
+    const response = await updateTeamTestUtil(
+      { teamName: newTeamName },
+      id,
+      token
+    );
     expect(response.status).toBe(200);
   });
 });
@@ -220,7 +197,7 @@ describe("Delete Team", () => {
     const response = await registerTeamTestUtil(validTeam);
     const id = response.body.data.team;
     const token = response.body.token;
-    const deleteTheTeam = await deleteATeam(id, token);
+    const deleteTheTeam = await deleteTeamTestUtil(id, token);
     expect(deleteTheTeam.status).toBe(200);
   });
 });

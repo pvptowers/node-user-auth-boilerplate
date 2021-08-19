@@ -42,6 +42,19 @@ global.getHashedPasswordTestUtil = async () => {
   return userData.password;
 };
 
+global.deleteTeamTestUtil = (id, token) => {
+  return request(app)
+    .delete(`/auth/delete-team/${id}`)
+    .set("Authorization", `Bearer ${token}`);
+};
+
+global.updateTeamTestUtil = (updatedTeamDetails, teamId, token) => {
+  return request(app)
+    .put(`/auth/update-team/${teamId}`)
+    .send(updatedTeamDetails)
+    .set("Authorization", `Bearer ${token}`);
+};
+
 //RESET PASSWORD UTILS
 
 global.forgotPasswordTestUtil = (email) => {
