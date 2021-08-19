@@ -34,47 +34,46 @@ const validTeam = {
   agreedTerms: true,
 };
 
-const createTeam = (team = validTeam) => {
-  return request(app).post("/auth/register").send(team);
-};
-
-const forgotPassword = (email) => {
-  return request(app).post("/auth/forgotpassword").send({ email });
-};
-
-const resetPassword = (resetToken, newPassword, newPasswordConfirm) => {
-  return request(app)
-    .patch(`/auth/resetPassword/${resetToken}`)
-    .send({ password: newPassword, passwordConfirm: newPasswordConfirm });
-};
-
 describe("FORGOT PASSWORD ROUTE - POST /auth/forgotpassword", () => {
-  describe("Password can successfully be reset", () => {
-    it("Returns 200 status code when password is reset", async () => {
-      const newUser = await createTeam();
-      const email = newUser.body.data.email;
-      const user = await User.findOne({ email });
-      const resetToken = user.createPasswordResetToken();
-      await user.save({ validateBeforeSave: false });
-      const newPassword = "123456Abc";
-      const newPasswordConfirm = "123456Abc";
-      const response = await resetPassword(
-        resetToken,
-        newPassword,
-        newPasswordConfirm
-      );
+  describe("Reset Token Successfully Sent", () => {
+    it("Returns 200 status code when forgot password is successful", async () => {
+      const user = await registerTeamTestUtil(validTeam);
+      const email = user.body.data.email;
+      const response = await forgotPasswordTestUtil(email);
       expect(response.status).toBe(200);
     });
   });
 });
 
 describe("RESET PASSWORD ROUTE - POST /auth/resetpassword", () => {
-  describe("Reset Token Successfully Sent", () => {
-    it("Returns 200 status code when forgot password is successful", async () => {
-      const user = await createTeam();
-      const email = user.body.data.email;
-      const response = await forgotPassword(email);
+  describe("Password can successfully be reset", () => {
+    it("Returns 200 status code when password is reset", async () => {
+      const user = await registerTeamTestUtil(validTeam);
+      const resetToken = await createResetTokenTestUtil(user.body.data.email);
+      const response = await resetPasswordTestUtil(resetToken);
       expect(response.status).toBe(200);
+    });
+    it("Hashes the new users password in the database", async () => {
+      const user = await registerTeamTestUtil(validTeam);
+      const resetToken = await createResetTokenTestUtil(user.body.data.email);
+      const response = await resetPasswordTestUtil(resetToken);
+      const hashedPassword = await getHashedPasswordTestUtil();
+      expect(hashedPassword).not.toBe(undefined);
+      expect(hashedPassword).not.toBe(response.newPassword);
+    });
+
+    it("Updated Hash Password is different to old Hash Password", async () => {
+      const newUser = await registerTeamTestUtil(validTeam);
+      const user = await User.findOne({
+        email: newUser.body.data.email,
+      }).select("+password");
+      const originalPassword = user.password;
+      const resetToken = await createResetTokenTestUtil(
+        newUser.body.data.email
+      );
+      await resetPasswordTestUtil(resetToken);
+      const hashedPassword = await getHashedPasswordTestUtil();
+      expect(originalPassword).not.toEqual(hashedPassword);
     });
   });
 });
