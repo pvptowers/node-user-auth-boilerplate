@@ -72,7 +72,7 @@ const updateTheTeam = (updatedTeamDetails, teamId, token) => {
 };
 
 describe("TEAM ROUTE - GET /team/get-team", () => {
-  describe("Get Team Succeeds", () => {
+  describe("GET request for Team Succeeds", () => {
     it("Should return 200 status code when get request succeeds", async () => {
       const team = await registerTeamTestUtil(validTeam);
       const token = team.body.token;
@@ -106,7 +106,7 @@ describe("TEAM ROUTE - GET /team/get-team", () => {
     });
   });
 
-  describe("Get team fails", () => {
+  describe("GET request for team fails", () => {
     it("Should return 404 when when team ID is invalid", async () => {
       const team = await registerTeamTestUtil(validTeam);
       const token = team.body.token;
@@ -115,8 +115,31 @@ describe("TEAM ROUTE - GET /team/get-team", () => {
       expect(response.status).toBe(404);
     });
 
-    //NEED TO TEST CASTERROR AND UPDATE ERROR HANDLER
-    //TEST WHEN ID IS IN WRONG FORMAT
+    it("Should return mesage No Team Exists with this ID when id is incorrect", async () => {
+      const team = await registerTeamTestUtil(validTeam);
+      const token = team.body.token;
+      const incorrectId = "60ed6b63ae65868cb03dda6a";
+      const response = await getTeamByIdTestUtil(incorrectId, token);
+      expect(response.body.message).toBe("No Team Exists With This ID");
+    });
+
+    it("Should return CastError when format of Team ID is incorrect", async () => {
+      const team = await registerTeamTestUtil(validTeam);
+      const token = team.body.token;
+      const incorrectId = "123";
+      const response = await getTeamByIdTestUtil(incorrectId, token);
+      expect(response.body.message).toBe(
+        'Cast to ObjectId failed for value "123" at path "_id" for model "Team"'
+      );
+    });
+
+    it("Should return 500 when format of Team ID is incorrect", async () => {
+      const team = await registerTeamTestUtil(validTeam);
+      const token = team.body.token;
+      const incorrectId = "123";
+      const response = await getTeamByIdTestUtil(incorrectId, token);
+      expect(response.status).toBe(500);
+    });
   });
 });
 

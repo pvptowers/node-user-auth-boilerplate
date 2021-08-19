@@ -1,8 +1,5 @@
-const mongoose = require("mongoose");
 const asyncHandler = require("../../middleware/asyncHandler");
-const Team = require("../../models/team.model");
 const ErrorResponse = require("../../middleware/errorResponse");
-const User = require("../../models/user.model");
 const authMiddleware = require("../../middleware/authentication.middleware");
 const teamService = require("./team.service");
 const userService = require("../users/user.service");
@@ -49,8 +46,6 @@ exports.updateTeam = asyncHandler(async (req, res, next) => {
 // ROUTE:       PUT /AUTH/DELETE-TEAM/:_ID
 // ACCESS:      PRIVATE
 exports.deleteTeam = asyncHandler(async (req, res, next) => {
-  const team = await teamService.deleteTeam(req.params._id);
+  await teamService.deleteTeam(req.params._id);
   res.status(200).json({ status: "success", data: null });
 });
-
-//separate route to delete all users from team
