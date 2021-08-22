@@ -35,6 +35,12 @@ global.getTeamByIdTestUtil = (id, token) => {
     .set("Authorization", `Bearer ${token}`);
 };
 
+global.getUserByIdTestUtil = (id, token) => {
+  return request(app)
+    .get(`/auth/get-user/${id}`)
+    .set("Authorization", `Bearer ${token}`);
+};
+
 global.getHashedPasswordTestUtil = async () => {
   const team = await Team.find();
   const user = await team[0].users[0];
@@ -82,4 +88,17 @@ global.incorrectPasswordTestUtil = (resetToken) => {
   return request(app)
     .patch(`/auth/resetPassword/${resetToken}`)
     .send({ password: newPassword, passwordConfirm: newPasswordConfirm });
+};
+
+global.deleteUserTestUtil = (id, token) => {
+  return request(app)
+    .delete(`/auth/delete-user/${id}`)
+    .set("Authorization", `Bearer ${token}`);
+};
+
+global.updateUserTestUtil = (updatedUserDetails, id, token) => {
+  return request(app)
+    .patch(`/auth/update-user/${id}`)
+    .send(updatedUserDetails)
+    .set("Authorization", `Bearer ${token}`);
 };

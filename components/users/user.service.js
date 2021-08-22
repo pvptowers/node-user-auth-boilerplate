@@ -3,6 +3,7 @@ const ErrorResponse = require("../../middleware/errorResponse");
 
 const getUserById = async (id) => {
   const user = await User.findById(id);
+  if (!user) throw new ErrorResponse("No user exists with that id", 404);
   return user;
 };
 
