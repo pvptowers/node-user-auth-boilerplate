@@ -13,6 +13,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   await Team.deleteMany();
   await User.deleteMany();
+  jest.resetAllMocks();
 });
 
 afterAll(async (done) => {
@@ -21,6 +22,7 @@ afterAll(async (done) => {
   mongoose.connection.db.dropDatabase(() => {
     mongoose.connection.close(() => done());
   });
+  jest.resetAllMocks();
 });
 
 const validTeam = {

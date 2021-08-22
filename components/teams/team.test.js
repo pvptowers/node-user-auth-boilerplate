@@ -16,6 +16,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   await Team.deleteMany();
   await User.deleteMany();
+  jest.resetAllMocks();
 });
 
 afterAll(async (done) => {
