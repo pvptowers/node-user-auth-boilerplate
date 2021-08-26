@@ -3,6 +3,8 @@ const app = require("../app");
 const User = require("../models/user.model");
 const Team = require("../models/team.model");
 const mongoose = require("mongoose");
+const httpMocks = require("node-mocks-http");
+
 const ErrorHandler = require("./ErrorHandler");
 const {
   createAccount,
@@ -50,73 +52,65 @@ const createTeam = (team = validTeam) => {
 };
 
 describe("Testing Error", () => {
-  it("testing new fix", async () => {
+  it("Testing CastError", async () => {
     process.env = {
-      NODE_ENV: "test",
+      NODE_ENV: "production",
+    };
+    const error = {
+      name: "CastError",
+      path: "/id",
+      value: "123456",
+      // statusCode: 400,
     };
 
-    const mErr = {
-      status: 401,
-      message: "This is an error",
-      stack: "this is a stack",
-      validationErrors: {},
-    };
+    const req = {};
+    const next = {};
 
-    const fn = jest.fn();
+    let res = {
+      json: function (a) {
+        this.message = a;
 
-    const mRes = {
-      json: fn,
-    };
-    ErrorHandler(mErr, null, mRes, null);
-    expect(fn).toBeCalled();
-    expect(fn).toBeCalledWith({
-      status: 401,
-      message: "This is an error",
-      stack: "this is a stack",
-      error: {
-        status: 401,
-        message: "This is an error",
-        stack: "this is a stack",
+        return a;
       },
-      validationErrors: {},
-    });
+      status: function (s) {
+        this.statusCode = s;
+        return this;
+      },
+    };
+
+    ErrorHandler(error, req, res, next);
+    console.log("FINAL CONSOLE", res);
+    expect(res.statusCode).toBe(400);
   });
-
-  it("2nd test", async () => {
+  it("Testing CastError in DEVELOPMENT", async () => {
     process.env = {
       NODE_ENV: "test",
     };
-
-    const mErr = {
-      status: 401,
-      message: "This is an error",
-      stack: "this is a stack",
-      validationErrors: {},
+    const error = {
+      name: "CastError",
+      path: "/id",
+      value: "123456",
+      //statusCode: 400,
     };
 
-    const statusfn = jest.fn();
-    const jsonfn = jest.fn();
+    const req = {};
+    const next = {};
 
-    const mRes = {
-      json: jsonfn,
-      status: (n) => {
-        statusfn(n);
-        return mRes;
+    let res = {
+      json: function (a) {
+        this.message = a;
+
+        return a;
+      },
+      status: function (s) {
+        this.statusCode = s;
+        return this;
       },
     };
-    ErrorHandler(mErr, null, mRes, null);
-    expect(statusfn).toBeCalledWith(401);
-    expect(jsonfn).toBeCalled();
-    expect(jsonfn).toBeCalledWith({
-      status: 401,
-      message: "This is an error",
-      stack: "this is a stack",
-      error: {
-        status: 401,
-        message: "This is an error",
-        stack: "this is a stack",
-      },
-      validationErrors: {},
-    });
+
+    ErrorHandler(error, req, res, next);
+    console.log("FINAL CONSOLE", res);
+    expect(res.statusCode).toBe(400);
   });
 });
+//NEED TO GET RID OF IF ELSE BLOCKS FOR ENVIRONMENT VARIABLES IN ERRORHANDLER. SAME ERROR SHOULD BE SENT REGARDLESS OF DEV OR PROD WITH DEV JUST ALSO GETTING STACK TRACE
