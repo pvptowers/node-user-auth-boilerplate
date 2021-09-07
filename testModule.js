@@ -9,6 +9,7 @@ const app = require("./app");
 
 //REGISTER TEAM / USERS TEST UTILS
 global.registerTeamTestUtil = (team) => {
+  console.log("CALLING REGISTER TEAM TEST UTIL");
   return request(app).post("/auth/register").send(team);
 };
 

@@ -3,18 +3,8 @@ const app = require("../app");
 const User = require("../models/user.model");
 const Team = require("../models/team.model");
 const mongoose = require("mongoose");
-const httpMocks = require("node-mocks-http");
 
 const ErrorHandler = require("./ErrorHandler");
-const {
-  createAccount,
-  addUser,
-  getAccount,
-  getAllTeams,
-  login,
-  logout,
-} = require("../components/authentication/authentication.controller");
-const ErrorResponse = require("./errorResponse");
 
 beforeAll(async () => {
   jest.setTimeout(20000);
@@ -47,10 +37,6 @@ const validTeam = {
   agreedTerms: true,
 };
 
-const createTeam = (team = validTeam) => {
-  return request(app).post("/auth/create-account").send(team);
-};
-
 describe("Testing Error", () => {
   it("Testing CastError", async () => {
     process.env = {
@@ -79,7 +65,6 @@ describe("Testing Error", () => {
     };
 
     ErrorHandler(error, req, res, next);
-    console.log("FINAL CONSOLE", res);
     expect(res.statusCode).toBe(400);
   });
   it("Testing CastError in DEVELOPMENT", async () => {
@@ -109,8 +94,91 @@ describe("Testing Error", () => {
     };
 
     ErrorHandler(error, req, res, next);
-    console.log("FINAL CONSOLE", res);
     expect(res.statusCode).toBe(400);
+  });
+  it("Testing Duplicate Field Error", async () => {
+    process.env = {
+      NODE_ENV: "test",
+    };
+    const error = {
+      path: "/id",
+      value: "dup@dup.com",
+      code: 11000,
+      errmsg: "'itemiswrong'",
+      //statusCode: 400,
+    };
+
+    const req = {};
+    const next = {};
+
+    let res = {
+      json: function (a) {
+        this.message = a;
+
+        return a;
+      },
+      status: function (s) {
+        this.statusCode = s;
+        return this;
+      },
+    };
+
+    ErrorHandler(error, req, res, next);
+    expect(res.statusCode).toBe(400);
+  });
+  it("Testing Duplicate Field Error", async () => {
+    process.env = {
+      NODE_ENV: "test",
+    };
+    const error = {
+      name: "JsonWebTokenError",
+      //statusCode: 400,
+    };
+
+    const req = {};
+    const next = {};
+
+    let res = {
+      json: function (a) {
+        this.message = a;
+
+        return a;
+      },
+      status: function (s) {
+        this.statusCode = s;
+        return this;
+      },
+    };
+
+    ErrorHandler(error, req, res, next);
+    expect(res.statusCode).toBe(401);
+  });
+  it("TokenExpiredError", async () => {
+    process.env = {
+      NODE_ENV: "test",
+    };
+    const error = {
+      name: "TokenExpiredError",
+      //statusCode: 400,
+    };
+
+    const req = {};
+    const next = {};
+
+    let res = {
+      json: function (a) {
+        this.message = a;
+
+        return a;
+      },
+      status: function (s) {
+        this.statusCode = s;
+        return this;
+      },
+    };
+
+    ErrorHandler(error, req, res, next);
+    expect(res.statusCode).toBe(401);
   });
 });
 //NEED TO GET RID OF IF ELSE BLOCKS FOR ENVIRONMENT VARIABLES IN ERRORHANDLER. SAME ERROR SHOULD BE SENT REGARDLESS OF DEV OR PROD WITH DEV JUST ALSO GETTING STACK TRACE

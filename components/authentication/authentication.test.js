@@ -283,6 +283,7 @@ describe("AUTH ROUTE - POST /auth/register", () => {
       };
       const response = await registerTeamTestUtil(newTeam);
       const body = response.body;
+      console.log("IN TEST", response);
       expect(Object.keys(body.validationErrors)).toEqual([
         "teamName",
         "email",
